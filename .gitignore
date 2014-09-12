@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Hie/TestResults
+/Hie/packages
+/Hie/Hie.Core/bin/
+/Hie/Hie.Core/obj/
+/Hie/Hie.Core.Test/bin/
+/Hie/Hie.Core.Test/obj/

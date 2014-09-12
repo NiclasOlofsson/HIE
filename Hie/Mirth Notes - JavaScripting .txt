@@ -1,0 +1,25 @@
+Transformer and filter script execution. Check the transform(..) calling evaluateScript(..) for the actual execution of the transformers/filters.
+
+	http://www.mirthproject.org/svn/trunk/server/src/com/mirth/connect/server/mule/transformers/JavaScriptTransformer.java
+
+
+Generates the scripts with message and correct Scope, Look at generateScript(..) for the complete reference:
+
+	http://www.mirthproject.org/svn/trunk/server/src/com/mirth/connect/server/util/JavaScriptUtil.java
+
+
+Adds all runtime variables to the correct variables in JavaScript. Look at addMessageObject(..) as an example:
+
+	http://www.mirthproject.org/svn/trunk/server/src/com/mirth/connect/server/util/JavaScriptScopeUtil.java
+
+
+
+
+
+
+
+
+
+
+
+
