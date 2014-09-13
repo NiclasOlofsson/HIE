@@ -194,7 +194,7 @@ namespace Hie.Core.Test
 			using (StreamReader reader = new StreamReader(fileOutPath))
 			{
 				string text = reader.ReadToEnd();
-				Assert.AreEqual("Hello world!\r\nHello world!", text.Trim());
+				Assert.AreEqual("Hello world!\nHello world!", text.Trim().Replace("\r\n", "\n"));
 				reader.Close();
 			}
 		}
