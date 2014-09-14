@@ -30,9 +30,13 @@ Best description of the BizTalk message box inner workings and principals
 
 	http://blogs.msdn.com/b/sanket/archive/2006/06/19/the-biztalk-server-messagebox.aspx
 	Promoted properties on above: http://msdn.microsoft.com/en-us/library/aa561535.aspx
-
+	More on the pipleline processing: http://msdn.microsoft.com/en-us/library/ee268059(v=bts.10).aspx
 
 XML without delimiter reading from stream.
 
 	http://stackoverflow.com/questions/2942581/parsing-concatenated-non-delimited-xml-messages-from-tcp-stream-using-c-sharp
+
+Next time i need to explain TCP communication to someone, send them..
+	http://blogs.msdn.com/b/malarch/archive/2006/06/26/647993.aspx
+	And in regards to receivetimeout (implement the last answer): http://stackoverflow.com/questions/3466332/beginreceive-beginread-timeouts
 

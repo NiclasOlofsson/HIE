@@ -43,25 +43,30 @@ Examples of pipelines that would be supported by HIE...
 - JSON transcoding
 - XML transcoding
 
-These pipelines converts to and from XML representations necessary in order to transform messages in HIE.
+These pipelines converts to and from ~XML~ [Edit] some representations necessary in order to transform messages in HIE.
 
-At this time, it is not yet decided how the endpoints will bind to channels. Publish subscribe, yes sure. But if it will be configured on the endpoint, or on the channel remains to be seen.
+~At this time, it is not yet decided how the endpoints will bind to channels. Publish subscribe, yes sure. But if it will be configured on the endpoint, or on the channel remains to be seen.~
+[EDIT] It is decided to follow the publish/subscribe model as implemented in BizTalk. Should provide the biggest flexibility and also easiest to implement.
 
 ### Channel
 A channel is similar in concept to BizTalk orchestration, just a bit less flexible. Most of the transformations in healthcare only require simple forward going transformation or very simple request/response scenarios.
 
 A channel will have exactly one source, and one or many destinations.
 
+[EDIT] Currently considering making Channel a *contract* (read Interface) in order to allow both a Mirth approach as well as a workflow approach to orchestration.
+
 ### Source
-The source for a channel has the ability to filter and transform incoming messages before handed off to one or many destinations. A filter or transform applied to the source is in all practicallity a channel filter and a channel transformation.
+The source for a channel has the ability to filter and transform incoming messages before handed off to one or many destinations. A filter or transform applied to the source is in all practicallity a channel filter and a channel transformation. 
+[EDIT] In the publish/subscribe messaging flow the source filters decide whetever a channel will accept the message or not. However, in Mirth Connect the source is also responsible for setting up the endpoint which is not the case with HIE. This might lead to the removal of Source completely and have the filters applied to Channel directly (KISS).
 
 ### Destination
-Once the source has filterd and transformed a message it will be routed to the destinations of the channel. Each destination has it's own set of filters and transformers. Each destination also have a target endpoint where the final message will be routed.
+Once the source has filterd and transformed a message it will be routed to the destinations of the channel. Each destination has it's own set of filters and transformers. ~Each destination also have a target endpoint where the final message will be routed.~
+[EDIT] True publish/subscribe choosen. Hence routing will be through properties, no direct addressing. May be changed again at a later stage if deemed necessary.
 
 ### Filter
 Filters are used to control which messages will be processed in a source or a specific destination. A filter applied to a source serves as a channel filter, and a filter applied to a destination controls routing within the channel.
 
-Filters are configured as either *acccept* or *reject* logical constructs based on either message properties or content within the body of the message itself. In BizTalk this is usually based on properties contained in the message property bag. Mirth based the logic on the content within the message. HIE supports both styles of routing.
+Filters are configured as either *acccept* or *reject* logical constructs based on either message properties or content within the body of the message itself. In BizTalk this is based on *promoted properties* following the message. Mirth based the logic on the content within the message. HIE will support both styles of routing, but promoted property approach will always be more effecient.
 
 ### Transformer
 If you are coming from a BizTalk world you would see this as the "mapper" or pure XSLT (like the pro do). It would be fair to say that a wast majority of the large scale usages of BizTalk are routing scenarios. This is somthing that BizTalk excel at (at least in comparison to Mirth). Especially when orchestration is a must. 
