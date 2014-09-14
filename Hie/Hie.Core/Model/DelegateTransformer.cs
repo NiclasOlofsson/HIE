@@ -2,7 +2,7 @@ namespace Hie.Core.Model
 {
 	public class DelegateTransformer : ITransformer
 	{
-		public delegate void TransformerProcessor(Message message);
+		public delegate void TransformerProcessor(object source, Message message);
 
 		private TransformerProcessor _processor;
 
@@ -15,9 +15,9 @@ namespace Hie.Core.Model
 			_processor = processor;
 		}
 
-		public void ProcessMessage(Message message)
+		public void ProcessMessage(object source, Message message)
 		{
-			if (_processor != null) _processor(message);
+			if (_processor != null) _processor(source, message);
 		}
 	}
 }

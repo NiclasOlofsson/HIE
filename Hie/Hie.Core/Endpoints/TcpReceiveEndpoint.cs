@@ -9,11 +9,19 @@ namespace Hie.Core.Endpoints
 {
 	public class TcpReceiveEndpoint : EndpointBase
 	{
+		public const byte SOH = 0x01;
+		public const byte STX = 0x02;
+		public const byte ETX = 0x03;
+		public const byte EOT = 0x04;
+
+
 		private readonly IPEndPoint _endpoint;
 
 		public class Options : IOptions
 		{
 			public IPEndPoint Endpoint { get; set; }
+			public byte[] MessageStartDelimiters { get; set; }
+			public byte[] MessageEndDelimiters { get; set; }
 		}
 
 		public class StateObject
@@ -58,16 +66,15 @@ namespace Hie.Core.Endpoints
 		{
 			TcpListener listener = (TcpListener) ar.AsyncState;
 			Socket client = listener.EndAcceptSocket(ar);
-
-			// Mock stuff - remove later
-			HostService.PublishMessage(this, DirectTarget, new Message());
-			MessageSent.Set();
+			StateObject state = new StateObject();
+			state.workSocket = client;
+			client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
 
 			listener.BeginAcceptSocket(AcceptCallback, listener);
 		}
 
 
-		public static void ReadCallback(IAsyncResult ar)
+		public void ReadCallback(IAsyncResult ar)
 		{
 			StateObject state = (StateObject) ar.AsyncState;
 			Socket handler = state.workSocket;
@@ -77,20 +84,38 @@ namespace Hie.Core.Endpoints
 
 			if (bytesRead > 0)
 			{
-				// There  might be more data, so store the data received so far.
-				state.sb.Append(Encoding.ASCII.GetString(
-					state.buffer, 0, bytesRead));
+				bool endOfMessage = false;
+
+				foreach (var b in state.buffer)
+				{
+					if (b != SOH && b != STX && b != ETX && b != EOT)
+					{
+						state.sb.Append(Encoding.ASCII.GetString(new byte[] {b}, 0, 1));
+					}
+					if (b == ETX || b == EOT)
+					{
+						endOfMessage = true;
+						break;
+					}
+				}
 
 				// Check for end-of-file tag. If it is not there, read 
 				// more data.
-				if (false)
+				if (endOfMessage)
 				{
+					Message message = new Message("text/plain");
+					message.Value = state.sb.ToString();
+					HostService.PublishMessage(this, message);
+					MessageSent.Set();
+
+					state = new StateObject();
+					state.workSocket = handler;
+					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
 				}
 				else
 				{
 					// Not all data received. Get more.
-					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-						new AsyncCallback(ReadCallback), state);
+					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
 				}
 			}
 		}

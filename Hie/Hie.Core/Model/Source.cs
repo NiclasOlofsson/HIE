@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Xml.Serialization;
 
 namespace Hie.Core.Model
 {
@@ -9,14 +8,10 @@ namespace Hie.Core.Model
 		public List<IFilter> Filters { get; private set; }
 		public List<ITransformer> Transformers { get; private set; }
 
-		[XmlIgnore]
-		public Dictionary<string, object> SourceMap { get; set; }
-
 		public Source()
 		{
 			Filters = new List<IFilter>();
 			Transformers = new List<ITransformer>();
-			SourceMap = new Dictionary<string, object>();
 		}
 
 		//TODO: Implement this as async
@@ -26,7 +21,7 @@ namespace Hie.Core.Model
 			bool accept = true;
 			foreach (var filter in Filters)
 			{
-				accept &= filter.Evaluate(message);
+				accept &= filter.Evaluate(source, message);
 				if (!accept) return false;
 			}
 
@@ -39,11 +34,11 @@ namespace Hie.Core.Model
 			// Apply transformers
 			foreach (var transformer in Transformers)
 			{
-				transformer.ProcessMessage(message);
+				transformer.ProcessMessage(source, message);
 			}
 
 			// Route to target
-			Channel.HostService.PublishMessage(this, Channel, message);
+			Channel.HostService.PublishMessage(this, message);
 		}
 	}
 }

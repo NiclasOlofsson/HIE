@@ -49,7 +49,7 @@ namespace Hie.Core
 			}
 		}
 
-		public void PublishMessage(object source, object target, Message message)
+		public void PublishMessage(object source, Message message)
 		{
 			// Store message in queue (message box). Not yet implemented, but is what publish/subscribe will do
 
@@ -91,7 +91,7 @@ namespace Hie.Core
 			}
 			else
 			{
-				throw new Exception(string.Format("Illegal route. Source: {0}, Target {1}, Message {2}", source, target, message.Id));
+				throw new Exception(string.Format("Illegal route. Source: {0}, Message {2}", source, message.Id));
 			}
 		}
 	}

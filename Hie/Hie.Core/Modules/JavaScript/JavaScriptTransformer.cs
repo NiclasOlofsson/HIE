@@ -7,7 +7,7 @@ namespace Hie.Core.Modules.JavaScript
 	{
 		public string Script { get; set; }
 
-		public void ProcessMessage(Message message)
+		public void ProcessMessage(object source, Message message)
 		{
 			Engine engine = new Engine();
 			engine.SetValue("message", message);

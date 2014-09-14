@@ -2,7 +2,7 @@ namespace Hie.Core.Model
 {
 	public class DelegateFilter : IFilter
 	{
-		public delegate bool FilterProcessor(Message message);
+		public delegate bool FilterProcessor(object source, Message message);
 
 		private FilterProcessor _processor;
 
@@ -11,9 +11,9 @@ namespace Hie.Core.Model
 			_processor = processor;
 		}
 
-		public bool Evaluate(Message message)
+		public bool Evaluate(object source, Message message)
 		{
-			return _processor(message);
+			return _processor(source, message);
 		}
 	}
 }

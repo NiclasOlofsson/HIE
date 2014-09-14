@@ -23,11 +23,11 @@ namespace Hie.Core.Model
 			// Apply transformers
 			foreach (var transformer in Transformers)
 			{
-				transformer.ProcessMessage(message);
+				transformer.ProcessMessage(source, message);
 			}
 
 			// Route to target
-			Channel.HostService.PublishMessage(this, Target, message);
+			Channel.HostService.PublishMessage(this, message);
 		}
 
 		public bool AcceptMessage(Source source, Message message)
@@ -36,7 +36,7 @@ namespace Hie.Core.Model
 			bool accept = true;
 			foreach (var filter in Filters)
 			{
-				accept &= filter.Evaluate(message);
+				accept &= filter.Evaluate(source, message);
 				if (!accept) return false;
 			}
 

@@ -32,26 +32,26 @@ namespace Hie.Core.Test
 			// Source setup
 			Source source = new Source();
 			channel.Source = source;
-			source.Filters.Add(new DelegateFilter(message => true));
+			source.Filters.Add(new DelegateFilter((src, message) => true));
 			source.Filters.Add(new JavaScriptFilter {Script = "true"});
 			source.Transformers.Add(new DelegateTransformer());
-			source.Transformers.Add(new DelegateTransformer(message => { }));
-			source.Transformers.Add(new DelegateTransformer(message => { message.Value = message.Value; }));
+			source.Transformers.Add(new DelegateTransformer((src, message) => { }));
+			source.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
 
 			{
 				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
-				destination.Filters.Add(new DelegateFilter(message => true));
+				destination.Filters.Add(new DelegateFilter((src, message) => true));
 				destination.Filters.Add(new JavaScriptFilter {Script = "true"});
-				destination.Transformers.Add(new DelegateTransformer(message => { }));
-				destination.Transformers.Add(new DelegateTransformer(message => { message.Value = message.Value; }));
+				destination.Transformers.Add(new DelegateTransformer((src, message) => { }));
+				destination.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
 				channel.Destinations.Add(destination);
 			}
 			{
 				// This destination will filter out the message
 				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
-				destination.Filters.Add(new DelegateFilter(message => false));
+				destination.Filters.Add(new DelegateFilter((src, message) => false));
 				channel.Destinations.Add(destination);
 			}
 
@@ -59,8 +59,8 @@ namespace Hie.Core.Test
 				// This destination will transform the message
 				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
-				destination.Filters.Add(new DelegateFilter(message => true));
-				destination.Transformers.Add(new DelegateTransformer(message => { message.Value = message.Value + "test"; }));
+				destination.Filters.Add(new DelegateFilter((src, message) => true));
+				destination.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value + "test"; }));
 				channel.Destinations.Add(destination);
 			}
 
@@ -71,7 +71,7 @@ namespace Hie.Core.Test
 
 			// Start the processing
 
-			Message testMessage = new Message {Value = TestUtils.BuildHl7JsonString()};
+			Message testMessage = new Message("text/json") {Value = TestUtils.BuildHl7JsonString()};
 			// Mock method for sending a test message
 			((MockEndpoint) endpoint).SendTestMessage(testMessage);
 
@@ -128,24 +128,35 @@ namespace Hie.Core.Test
 			// Start the processing
 			applicationHost.StartProcessing();
 
+
 			{
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
-				client.Close();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
 				receiveEndpoint.WaitForMessage();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
+				receiveEndpoint.WaitForMessage();
+				client.Close();
 			}
 			{
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
-				client.Close();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
 				receiveEndpoint.WaitForMessage();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
+				receiveEndpoint.WaitForMessage();
+				client.Close();
 			}
 
 			// Check that endpoint received the message
 			MockEndpoint mockEndpoint = sendEndpoint as MockEndpoint;
 			Assert.IsNotNull(mockEndpoint);
 			Assert.IsNotNull(mockEndpoint.Messages);
-			Assert.AreEqual(2, mockEndpoint.Messages.Count);
+			Assert.AreEqual(3, mockEndpoint.Messages.Count);
+			foreach (Message message in mockEndpoint.Messages)
+			{
+				Assert.AreEqual("AAAA", message.Value);
+			}
 		}
 
 

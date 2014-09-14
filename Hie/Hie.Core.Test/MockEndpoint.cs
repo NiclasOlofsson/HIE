@@ -29,7 +29,7 @@ namespace Hie.Core.Test
 
 		public void SendTestMessage(Message testMessage)
 		{
-			HostService.PublishMessage(this, DirectTarget, testMessage);
+			HostService.PublishMessage(this, testMessage);
 		}
 	}
 }

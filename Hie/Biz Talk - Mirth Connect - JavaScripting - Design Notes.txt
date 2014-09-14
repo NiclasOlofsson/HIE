@@ -29,6 +29,6 @@ Filter with JSON
 Best description of the BizTalk message box inner workings and principals
 
 	http://blogs.msdn.com/b/sanket/archive/2006/06/19/the-biztalk-server-messagebox.aspx
-
+	Promoted properties on above: http://msdn.microsoft.com/en-us/library/aa561535.aspx
 
 
