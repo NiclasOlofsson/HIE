@@ -1,17 +1,6 @@
 namespace Hie.Core.Model
 {
-	public class Transformer
-	{
-		public Transformer()
-		{
-		}
-
-		public virtual void ProcessMessage(Message message)
-		{
-		}
-	}
-
-	public class DelegateTransformer : Transformer
+	public class DelegateTransformer : ITransformer
 	{
 		public delegate void TransformerProcessor(Message message);
 
@@ -26,9 +15,9 @@ namespace Hie.Core.Model
 			_processor = processor;
 		}
 
-		public override void ProcessMessage(Message message)
+		public void ProcessMessage(Message message)
 		{
-			_processor(message);
+			if (_processor != null) _processor(message);
 		}
 	}
 }

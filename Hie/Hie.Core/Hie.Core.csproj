@@ -61,16 +61,25 @@
   <ItemGroup>
     <Compile Include="ApplicationHost.cs" />
     <Compile Include="ChannelState.cs" />
+    <Compile Include="Endpoints\FileReaderEndpoint.cs" />
     <Compile Include="Model\Application.cs" />
+    <Compile Include="Model\DelegateFilter.cs" />
+    <Compile Include="Model\DelegateTransformer.cs" />
     <Compile Include="Model\Destination.cs" />
-    <Compile Include="Model\Filter.cs" />
-    <Compile Include="Model\Endpoint.cs" />
+    <Compile Include="Endpoints\FileWriterEndpoint.cs" />
+    <Compile Include="Model\IFilter.cs" />
+    <Compile Include="Endpoints\EndpointBase.cs" />
+    <Compile Include="Model\IEndpoint.cs" />
+    <Compile Include="Model\IOptions.cs" />
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\Channel.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Endpoints\TcpReceiveEndpoint.cs" />
+    <Compile Include="HieEngine.cs" />
+    <Compile Include="Modules\JavaScript\JavaScriptFilter.cs" />
+    <Compile Include="Modules\JavaScript\JavaScriptTransformer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\Source.cs" />
-    <Compile Include="Model\Transformer.cs" />
+    <Compile Include="Model\ITransformer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -49,44 +49,49 @@ namespace Hie.Core
 			}
 		}
 
-		public void RouteMessage(object source, object target, Message message)
+		public void PublishMessage(object source, object target, Message message)
 		{
-			if (source is Endpoint && target is Channel)
-			{
-				((Channel) target).Source.ProcessMessage(source, message.Clone());
-			}
-			else if (source is Source)
-			{
-				foreach (Destination destination in ((Channel) target).Destinations)
-				{
-					destination.ProcessMessage(source, message.Clone());
-				}
-			}
-			else if (source is Destination && target is Endpoint)
-			{
-				((Endpoint) target).ProcessMessage(source, message.Clone());
-			}
-			else
-			{
-				throw new Exception(string.Format("Illegal route. Source: {0}, Target {1}, Message {2}", source, target, message.Id));
-			}
-		}
+			// Store message in queue (message box). Not yet implemented, but is what publish/subscribe will do
 
-		public void BroadcastMessage(object source, Message message)
-		{
-			if (source is Endpoint)
+			// Process messages
+
+			if (source is IEndpoint)
 			{
-				foreach (Application application in Applications)
+				foreach (var application in Applications)
 				{
 					foreach (var channel in application.Channels)
 					{
-						channel.Source.ProcessMessage(source, message.Clone());
+						if (channel.Source.AcceptMessage(source, message))
+						{
+							channel.Source.ProcessMessage(source, message.Clone());
+						}
+					}
+				}
+			}
+			else if (source is Source)
+			{
+				// This is coming from source after transformation
+				foreach (Destination destination in ((Source) source).Channel.Destinations)
+				{
+					if (destination.AcceptMessage((Source) source, message))
+					{
+						destination.ProcessMessage((Source) source, message.Clone());
+					}
+				}
+			}
+			else if (source is Destination)
+			{
+				foreach (var application in Applications)
+				{
+					foreach (var endpoint in application.Endpoints)
+					{
+						endpoint.ProcessMessage(source, message.Clone());
 					}
 				}
 			}
 			else
 			{
-				throw new Exception(string.Format("Illegal broadcast source. Source: {0}, Message {1}", source, message.Id));
+				throw new Exception(string.Format("Illegal route. Source: {0}, Target {1}, Message {2}", source, target, message.Id));
 			}
 		}
 	}

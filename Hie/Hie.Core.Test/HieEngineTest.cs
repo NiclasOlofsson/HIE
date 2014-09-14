@@ -2,13 +2,15 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Hie.Core.Endpoints;
 using Hie.Core.Model;
+using Hie.Core.Modules.JavaScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hie.Core.Test
 {
 	[TestClass]
-	public class ProgramTest
+	public class HieEngineTest
 	{
 		[TestMethod]
 		public void BasicRoutingFilteringTransformationTest()
@@ -17,30 +19,27 @@ namespace Hie.Core.Test
 			Application application = new Application();
 
 			// Add endpoints
-			Endpoint endpoint = new MockEndpoint();
-			endpoint.Direction = EndpointDirection.OneWayReceive;
+			IEndpoint endpoint = new MockEndpoint(EndpointDirection.OneWayReceive);
 			application.Endpoints.Add(endpoint);
 
-			Endpoint sendEndpoint = new MockEndpoint();
-			sendEndpoint.Direction = EndpointDirection.OneWaySend;
+			IEndpoint sendEndpoint = new MockEndpoint(EndpointDirection.OneWaySend);
 			application.Endpoints.Add(sendEndpoint);
 
 			// Add a channel
 			Channel channel = new Channel();
 			application.Channels.Add(channel);
-			endpoint.DirectTarget = channel; // Not broadcast, so it forwards directly to channel (source)
 
 			// Source setup
-			Source source = new MockSource();
+			Source source = new Source();
 			channel.Source = source;
 			source.Filters.Add(new DelegateFilter(message => true));
 			source.Filters.Add(new JavaScriptFilter {Script = "true"});
-			source.Transformers.Add(new Transformer());
+			source.Transformers.Add(new DelegateTransformer());
 			source.Transformers.Add(new DelegateTransformer(message => { }));
 			source.Transformers.Add(new DelegateTransformer(message => { message.Value = message.Value; }));
 
 			{
-				Destination destination = new MockDestination();
+				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
 				destination.Filters.Add(new DelegateFilter(message => true));
 				destination.Filters.Add(new JavaScriptFilter {Script = "true"});
@@ -50,7 +49,7 @@ namespace Hie.Core.Test
 			}
 			{
 				// This destination will filter out the message
-				Destination destination = new MockDestination();
+				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
 				destination.Filters.Add(new DelegateFilter(message => false));
 				channel.Destinations.Add(destination);
@@ -58,7 +57,7 @@ namespace Hie.Core.Test
 
 			{
 				// This destination will transform the message
-				Destination destination = new MockDestination();
+				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
 				destination.Filters.Add(new DelegateFilter(message => true));
 				destination.Transformers.Add(new DelegateTransformer(message => { message.Value = message.Value + "test"; }));
@@ -103,11 +102,10 @@ namespace Hie.Core.Test
 			Application application = new Application();
 
 			// Add endpoints
-			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint(6789);
+			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789));
 			application.Endpoints.Add(receiveEndpoint);
 
-			Endpoint sendEndpoint = new MockEndpoint();
-			sendEndpoint.Direction = EndpointDirection.OneWaySend;
+			IEndpoint sendEndpoint = new MockEndpoint(EndpointDirection.OneWaySend);
 			application.Endpoints.Add(sendEndpoint);
 
 			// Add a channel
@@ -116,10 +114,10 @@ namespace Hie.Core.Test
 			receiveEndpoint.DirectTarget = channel;
 
 			// Source setup
-			Source source = new MockSource();
+			Source source = new Source();
 			channel.Source = source;
 
-			Destination destination = new MockDestination();
+			Destination destination = new Destination();
 			destination.Target = sendEndpoint;
 			channel.Destinations.Add(destination);
 
@@ -172,10 +170,10 @@ namespace Hie.Core.Test
 			fileReaderEndpoint.DirectTarget = channel;
 
 			// Source setup
-			Source source = new MockSource();
+			Source source = new Source();
 			channel.Source = source;
 
-			Destination destination = new MockDestination();
+			Destination destination = new Destination();
 			destination.Target = fileWriterEndpoint;
 			channel.Destinations.Add(destination);
 

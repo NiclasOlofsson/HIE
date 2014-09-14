@@ -6,29 +6,36 @@ namespace Hie.Core.Model
 	public class Source
 	{
 		public Channel Channel { get; set; }
-		public List<Filter> Filters { get; private set; }
-		public List<Transformer> Transformers { get; private set; }
+		public List<IFilter> Filters { get; private set; }
+		public List<ITransformer> Transformers { get; private set; }
 
 		[XmlIgnore]
 		public Dictionary<string, object> SourceMap { get; set; }
 
 		public Source()
 		{
-			Filters = new List<Filter>();
-			Transformers = new List<Transformer>();
+			Filters = new List<IFilter>();
+			Transformers = new List<ITransformer>();
 			SourceMap = new Dictionary<string, object>();
 		}
 
-		public virtual void ProcessMessage(object source, Message message)
+		//TODO: Implement this as async
+		public virtual bool AcceptMessage(object source, Message message)
 		{
 			// Apply filters
 			bool accept = true;
 			foreach (var filter in Filters)
 			{
 				accept &= filter.Evaluate(message);
-				if (!accept) return;
+				if (!accept) return false;
 			}
 
+			return true;
+		}
+
+		//TODO: Implement this as async
+		public virtual void ProcessMessage(object source, Message message)
+		{
 			// Apply transformers
 			foreach (var transformer in Transformers)
 			{
@@ -36,7 +43,7 @@ namespace Hie.Core.Model
 			}
 
 			// Route to target
-			Channel.HostService.RouteMessage(this, Channel, message);
+			Channel.HostService.PublishMessage(this, Channel, message);
 		}
 	}
 }

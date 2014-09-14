@@ -6,7 +6,7 @@ namespace Hie.Core.Model
 	public class Application
 	{
 		public List<Channel> Channels { get; private set; }
-		public List<Endpoint> Endpoints { get; private set; }
+		public List<IEndpoint> Endpoints { get; private set; }
 
 		[XmlIgnore]
 		public ApplicationHost HostService { get; set; }
@@ -16,7 +16,7 @@ namespace Hie.Core.Model
 
 		public Application()
 		{
-			Endpoints = new List<Endpoint>();
+			Endpoints = new List<IEndpoint>();
 			Channels = new List<Channel>();
 			ApplicationMap = new Dictionary<string, object>();
 		}
