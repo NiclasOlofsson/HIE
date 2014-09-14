@@ -92,3 +92,7 @@ The state of union right now is that BizTalk is too difficult/scary for non-deve
 
 The idea of the IDE for HIE is to use a platform similar to Visual Studio, but scaled down and "to the point" for novice users. And at the same time, provide the full power of Visual Studio for the users that so wish. **Suggestions for this platform is more than welcome and would be appreciated**. Right now Visual Studio extensions, Visual Studio Shell, #develop, Eclipise are all prospects to service as the IDE for HIE.
 
+## I am Learning!
+
+This whole things is a learning process (obviously), for me personally. If you want to follow that (My) learning process, follow this README but also this document: https://github.com/NiclasOlofsson/HIE/blob/master/Hie/Biz%20Talk%20-%20Mirth%20Connect%20-%20JavaScripting%20-%20Design%20Notes.txt
+
