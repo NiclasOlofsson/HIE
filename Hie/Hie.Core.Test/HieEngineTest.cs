@@ -108,6 +108,9 @@ namespace Hie.Core.Test
 			IEndpoint sendEndpoint = new MockEndpoint(EndpointDirection.OneWaySend);
 			application.Endpoints.Add(sendEndpoint);
 
+			IEndpoint sendEndpoint2 = new MockEndpoint(EndpointDirection.OneWaySend);
+			application.Endpoints.Add(sendEndpoint2);
+
 			// Add a channel
 			Channel channel = new Channel();
 			application.Channels.Add(channel);
@@ -118,7 +121,6 @@ namespace Hie.Core.Test
 			channel.Source = source;
 
 			Destination destination = new Destination();
-			destination.Target = sendEndpoint;
 			channel.Destinations.Add(destination);
 
 			// Host
@@ -132,31 +134,39 @@ namespace Hie.Core.Test
 			{
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
-				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
-				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
-				receiveEndpoint.WaitForMessage();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH}, 0, 1);
+				for (int i = 0; i < 100; i++)
+				{
+					client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
+					receiveEndpoint.WaitForMessage();
+				}
+				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.EOT }, 0, 1);
 				client.Close();
 			}
 			{
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
-				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
+				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.SOH }, 0, 1);
+				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
 				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, TcpReceiveEndpoint.EOT}, 0, 8);
+				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
 				receiveEndpoint.WaitForMessage();
+				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.EOT }, 0, 1);
 				client.Close();
 			}
 
 			// Check that endpoint received the message
 			MockEndpoint mockEndpoint = sendEndpoint as MockEndpoint;
+			MockEndpoint mockEndpoint2 = sendEndpoint2 as MockEndpoint;
 			Assert.IsNotNull(mockEndpoint);
 			Assert.IsNotNull(mockEndpoint.Messages);
-			Assert.AreEqual(3, mockEndpoint.Messages.Count);
+			Assert.AreEqual(102, mockEndpoint.Messages.Count);
+			Assert.AreEqual(102, mockEndpoint2.Messages.Count);
 			foreach (Message message in mockEndpoint.Messages)
 			{
 				Assert.AreEqual("AAAA", message.Value);
 			}
+
 		}
 
 

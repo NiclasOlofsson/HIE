@@ -32,3 +32,7 @@ Best description of the BizTalk message box inner workings and principals
 	Promoted properties on above: http://msdn.microsoft.com/en-us/library/aa561535.aspx
 
 
+XML without delimiter reading from stream.
+
+	http://stackoverflow.com/questions/2942581/parsing-concatenated-non-delimited-xml-messages-from-tcp-stream-using-c-sharp
+

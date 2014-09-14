@@ -33,7 +33,7 @@ namespace Hie.Core.Endpoints
 			// Receive buffer.
 			public byte[] buffer = new byte[BufferSize];
 			// Received data string.
-			public StringBuilder sb = new StringBuilder();
+			public StringBuilder sb = null;
 		}
 
 		public readonly ManualResetEvent MessageSent = new ManualResetEvent(false);
@@ -84,35 +84,43 @@ namespace Hie.Core.Endpoints
 
 			if (bytesRead > 0)
 			{
-				bool endOfMessage = false;
+				bool endOfTransmission = false;
 
 				foreach (var b in state.buffer)
 				{
-					if (b != SOH && b != STX && b != ETX && b != EOT)
+					if (b == SOH) continue;
+
+					if (b == STX)
 					{
-						state.sb.Append(Encoding.ASCII.GetString(new byte[] {b}, 0, 1));
+						state.sb = new StringBuilder();
+						continue;
 					}
-					if (b == ETX || b == EOT)
+
+					if (b == ETX)
 					{
-						endOfMessage = true;
+						if (state.sb == null) continue;
+
+						Message message = new Message("text/plain");
+						message.Value = state.sb.ToString();
+						HostService.PublishMessage(this, message);
+						MessageSent.Set();
+
+						state.sb = null;
+						continue;
+					}
+
+					if (b == EOT)
+					{
+						endOfTransmission = true;
 						break;
 					}
+
+					if (state.sb != null) state.sb.Append(Encoding.ASCII.GetString(new byte[] {b}, 0, 1));
 				}
 
 				// Check for end-of-file tag. If it is not there, read 
 				// more data.
-				if (endOfMessage)
-				{
-					Message message = new Message("text/plain");
-					message.Value = state.sb.ToString();
-					HostService.PublishMessage(this, message);
-					MessageSent.Set();
-
-					state = new StateObject();
-					state.workSocket = handler;
-					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
-				}
-				else
+				if (!endOfTransmission)
 				{
 					// Not all data received. Get more.
 					handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
