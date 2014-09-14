@@ -43,9 +43,9 @@ Examples of pipelines that would be supported by HIE...
 - JSON transcoding
 - XML transcoding
 
-These pipelines converts to and from ~XML~ [Edit] some representations necessary in order to transform messages in HIE.
+These pipelines converts to and from ~~XML~~ [Edit] some representations necessary in order to transform messages in HIE.
 
-~At this time, it is not yet decided how the endpoints will bind to channels. Publish subscribe, yes sure. But if it will be configured on the endpoint, or on the channel remains to be seen.~
+~~At this time, it is not yet decided how the endpoints will bind to channels. Publish subscribe, yes sure. But if it will be configured on the endpoint, or on the channel remains to be seen.~~
 [EDIT] It is decided to follow the publish/subscribe model as implemented in BizTalk. Should provide the biggest flexibility and also easiest to implement.
 
 ### Channel
@@ -60,7 +60,7 @@ The source for a channel has the ability to filter and transform incoming messag
 [EDIT] In the publish/subscribe messaging flow the source filters decide whetever a channel will accept the message or not. However, in Mirth Connect the source is also responsible for setting up the endpoint which is not the case with HIE. This might lead to the removal of Source completely and have the filters applied to Channel directly (KISS).
 
 ### Destination
-Once the source has filterd and transformed a message it will be routed to the destinations of the channel. Each destination has it's own set of filters and transformers. ~Each destination also have a target endpoint where the final message will be routed.~
+Once the source has filterd and transformed a message it will be routed to the destinations of the channel. Each destination has it's own set of filters and transformers. ~~Each destination also have a target endpoint where the final message will be routed.~~
 [EDIT] True publish/subscribe choosen. Hence routing will be through properties, no direct addressing. May be changed again at a later stage if deemed necessary.
 
 ### Filter
