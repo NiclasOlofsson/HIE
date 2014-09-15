@@ -6,7 +6,7 @@
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A6A3E619-30BF-4A54-84DB-93FEC1E74AE3}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Hie.Core</RootNamespace>
     <AssemblyName>Hie.Core</AssemblyName>
@@ -92,7 +92,6 @@
     <Compile Include="Model\Message.cs" />
     <Compile Include="Model\Channel.cs" />
     <Compile Include="Endpoints\TcpReceiveEndpoint.cs" />
-    <Compile Include="HieEngine.cs" />
     <Compile Include="Modules\JavaScript\JavaScriptFilter.cs" />
     <Compile Include="Modules\JavaScript\JavaScriptTransformer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

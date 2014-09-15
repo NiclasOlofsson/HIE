@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hie.Core", "Hie.Core\Hie.Core.csproj", "{A6A3E619-30BF-4A54-84DB-93FEC1E74AE3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hie.Console", "Hie.Core\Hie.Console.csproj", "{A6A3E619-30BF-4A54-84DB-93FEC1E74AE3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hie.Core.Test", "Hie.Core.Test\Hie.Core.Test.csproj", "{EEE336E9-09DE-42DB-A900-19B27750114A}"
 EndProject
