@@ -81,9 +81,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Hie.Core\Hie.Console.csproj">
-      <Project>{A6A3E619-30BF-4A54-84DB-93FEC1E74AE3}</Project>
-      <Name>Hie.Console</Name>
+    <ProjectReference Include="..\Hie.Core\Hie.Core.csproj">
+      <Project>{ff14bba9-c847-44c4-abe1-6ad2ceafc12c}</Project>
+      <Name>Hie.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
