@@ -28,6 +28,11 @@ namespace Hie.Core.Endpoints
 			_append = append;
 		}
 
+		public override void Init(IOptions options)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public override void StartProcessing()
 		{
 			if (_deleteOnStart && File.Exists(_filePath))

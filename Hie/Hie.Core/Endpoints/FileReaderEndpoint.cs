@@ -23,6 +23,11 @@ namespace Hie.Core.Endpoints
 			_encoding = encoding;
 		}
 
+		public override void Init(IOptions options)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public override void StartProcessing()
 		{
 			_timer = new Timer();

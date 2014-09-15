@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -11,111 +10,75 @@ namespace Hie.Core.Endpoints
 {
 	public class TcpReceiveEndpoint : EndpointBase
 	{
-		public const byte SOH = 0x01;
-		public const byte STX = 0x02;
-		public const byte ETX = 0x03;
-		public const byte EOT = 0x04;
-
-
-		public class Options : IOptions
-		{
-			public IPEndPoint Endpoint { get; set; }
-
-			public byte[] EOTDelimiters { get; set; }
-			public byte[] SOHDelimiters { get; set; }
-			public byte[] STXDelimiters { get; set; }
-			public byte[] ETXDelimiters { get; set; }
-
-			public Options()
-			{
-				// Defaults
-				SOHDelimiters = new[] {SOH};
-				STXDelimiters = new[] {STX};
-				ETXDelimiters = new[] {ETX};
-				EOTDelimiters = new[] {EOT};
-			}
-		}
-
-		public class StateObject
-		{
-			internal enum FrameState
-			{
-				Unknown,
-				FindSOH,
-				FindSTX,
-				FindETX,
-				FindEOM
-			}
-
-			internal Socket WorkSocket { get; private set; }
-			internal int BufferSize { get; private set; }
-			internal byte[] Buffer { get; private set; }
-			internal MemoryStream Stream { get; private set; }
-			internal List<byte> DelimiterBuffer { get; private set; }
-			internal FrameState State { get; set; }
-
-			public StateObject(Socket workSocket, int bufferSize = 1024)
-			{
-				WorkSocket = workSocket;
-				BufferSize = bufferSize;
-				Buffer = new byte[BufferSize];
-				Stream = new MemoryStream();
-				State = FrameState.FindSOH;
-				DelimiterBuffer = new List<byte>();
-			}
-
-			public void ResetState()
-			{
-				Buffer = new byte[BufferSize];
-			}
-		}
-
 		public readonly ManualResetEvent MessageSent = new ManualResetEvent(false);
 
 		private TcpListener _listener;
-		private readonly IPEndPoint _endpoint;
-		private readonly Options _options;
+		private Options _options;
 
-		public TcpReceiveEndpoint(IPEndPoint endpoint, Options options = null)
+		public TcpReceiveEndpoint()
 		{
-			_endpoint = endpoint;
-			_options = options ?? new Options();
 		}
 
-		public Options GetOptions()
+		// For test
+		internal TcpReceiveEndpoint(IPEndPoint endpoint = null, Options options = null)
 		{
-			return _options;
-		} 
+			_options = options ?? new Options();
+			_options.Endpoint = endpoint;
+		}
+
+		public override void Init(IOptions options)
+		{
+			_options = (Options) options;
+
+			// Validate options (since this will be coming from a human)
+			_options.Validate();
+		}
 
 		public override void StartProcessing()
 		{
-			_listener = new TcpListener(_endpoint);
-			//_listener.Server.NoDelay Investigate!
+			_options.Validate();
+
+			_listener = new TcpListener(_options.Endpoint);
 			_listener.Start();
 			_listener.BeginAcceptSocket(AcceptCallback, _listener);
 		}
 
 		public override void StopProcessing()
 		{
-			throw new NotImplementedException();
+			_listener.Stop();
 		}
 
 		public override void ProcessMessage(object source, Message message)
 		{
+			//TODO: Implement send-side of things (maybe)
 		}
 
 		private void AcceptCallback(IAsyncResult ar)
 		{
 			TcpListener listener = (TcpListener) ar.AsyncState;
+
+			// The listener might have been stopped. 
+			// Avoid exceptions and stop listenting for more accepts.
+			if (listener.Server == null || !listener.Server.IsBound)
+				return;
+
 			Socket socket = listener.EndAcceptSocket(ar);
-			StateObject state = new StateObject(socket);
+			socket.NoDelay = _options.NoDelay;
+			socket.ReceiveBufferSize = _options.ReceiveBufferSize;
+			socket.SendBufferSize = _options.SendBufferSize;
+			// For future, this have no effect on async communication scenarios:
+			// - socket.ReceiveTimeout
+			// - socket.SendTimeout
+			// Implement using semaphores instead.
+
+			StateObject state = new StateObject(socket, _options.ReceiveBufferSize);
 			socket.BeginReceive(state.Buffer, 0, state.BufferSize, 0, ReadCallback, state);
 
 			listener.BeginAcceptSocket(AcceptCallback, listener);
 		}
 
 
-		public void ReadCallback(IAsyncResult ar)
+		private void ReadCallback(IAsyncResult ar)
 		{
 			StateObject state = (StateObject) ar.AsyncState;
 			Socket socket = state.WorkSocket;
@@ -123,139 +86,154 @@ namespace Hie.Core.Endpoints
 			// Read data from the client socket. 
 			int bytesRead = socket.EndReceive(ar);
 
-
 			if (bytesRead > 0)
 			{
-				bool endOfTransmission = false;
-
-				for (int i = 0; i < bytesRead || state.DelimiterBuffer.Count > 0; i++)
-				{
-					byte b;
-					if (i >= bytesRead)
-					{
-						b = state.DelimiterBuffer[0];
-						state.DelimiterBuffer.RemoveAt(0);
-					}
-					else
-					{
-						b = state.Buffer[i];
-					}
-
-
-					switch (state.State)
-					{
-						case StateObject.FrameState.FindSOH:
-						{
-							if (_options.SOHDelimiters.Length > 0)
-							{
-								int position = Array.IndexOf(_options.SOHDelimiters, b);
-								if (position != -1 && position == state.Stream.Position)
-								{
-									state.Stream.WriteByte(b);
-									if (state.Stream.Position == _options.SOHDelimiters.Length)
-									{
-										// Done, change state
-										state.Stream.Position = 0;
-										state.State = StateObject.FrameState.FindSTX;
-									}
-								}
-								else
-								{
-									// We are not in a recognized byte-set. Waste all the bytes found so far
-									state.Stream.Position = 0;
-								}
-
-								continue;
-							}
-
-							state.State = StateObject.FrameState.FindSTX;
-							goto case StateObject.FrameState.FindSTX;
-						}
-						case StateObject.FrameState.FindSTX:
-						{
-							int position = Array.IndexOf(_options.STXDelimiters, b);
-							if (position != -1 && position == state.Stream.Position)
-							{
-								state.Stream.WriteByte(b);
-								if (state.Stream.Position == _options.STXDelimiters.Length)
-								{
-									// Done, change state
-									state.Stream.Position = 0;
-									state.State = StateObject.FrameState.FindETX;
-								}
-							}
-							else
-							{
-								// WARN: This will not work if STH and EOT start with same characters, but SOH is shorter than EOT
-								// Example: STH:0x01,0x02 EOT:0x01,0x02,0x03
-								// In that case, a possible EOT will be interpreted as STX.
-								position = Array.IndexOf(_options.EOTDelimiters, b);
-								if (position != -1 && position == state.Stream.Position)
-								{
-									state.Stream.WriteByte(b);
-									if (state.Stream.Position == _options.EOTDelimiters.Length)
-									{
-										// Done, change state
-										state.Stream.Position = 0;
-										endOfTransmission = true;
-										break;
-									}
-								}
-
-								// We are not in a recognized byte-set. Waste all the bytes found so far
-								state.Stream.Position = 0;
-							}
-
-							continue;
-						}
-						case StateObject.FrameState.FindETX:
-						{
-							int position = Array.IndexOf(_options.ETXDelimiters, b);
-							if (position != -1 && position == state.DelimiterBuffer.Count)
-							{
-								state.DelimiterBuffer.Add(b);
-								if (state.DelimiterBuffer.Count == _options.ETXDelimiters.Length)
-								{
-									if (state.Stream.Position == 0) continue;
-
-									SubmitPayloadToPipeline(state);
-
-									state.DelimiterBuffer.Clear();
-									state.Stream.Position = 0; // Reset stream
-
-									// Done, change state
-									state.Stream.Position = 0;
-									state.State = StateObject.FrameState.FindSTX;
-								}
-							}
-							else
-							{
-								// We are not in a recognized byte-set. Consider this part of the message
-								state.Stream.Write(state.DelimiterBuffer.ToArray(), 0, state.DelimiterBuffer.Count);
-								state.DelimiterBuffer.Clear();
-								state.Stream.WriteByte(b);
-							}
-
-							continue;
-						}
-					}
-				}
+				bool endOfTransmission = ProcessIncomingStream(bytesRead, state);
 
 				// Check for end-of-file tag. If it is not there, read 
 				// more data.
 				if (!endOfTransmission)
 				{
 					// Not all data received. Get more.
-					state.ResetState();
 					socket.BeginReceive(state.Buffer, 0, state.BufferSize, 0, ReadCallback, state);
 				}
 			}
+
+			// Will simply shutdown communication if nothing received
 		}
 
-		private void SubmitPayloadToPipeline(StateObject state)
+		internal bool ProcessIncomingStream(int bytesRead, StateObject state)
+		{
+			bool endOfTransmission = false;
+
+			for (int i = 0; (i < bytesRead && !endOfTransmission); i++)
+			{
+				state.Stream.WriteByte(state.Buffer[i]);
+
+				switch (state.State)
+				{
+					case StateObject.FrameState.FindSoh:
+					{
+						if (_options.SohDelimiters.Length > 0)
+						{
+							if (state.Stream.Position < _options.SohDelimiters.Length)
+							{
+								continue;
+							}
+
+							bool foundDelimiters = CheckDelimiter(_options.SohDelimiters, state.Stream);
+
+							if (foundDelimiters)
+							{
+								state.Stream.Position = 0;
+								state.State = StateObject.FrameState.FindStx;
+							}
+
+							continue;
+						}
+						else
+						{
+							state.State = StateObject.FrameState.FindStx;
+							goto case StateObject.FrameState.FindStx;
+						}
+					}
+					case StateObject.FrameState.FindStx:
+					{
+						if (_options.EotDelimiters.Length == 0)
+						{
+							if (state.Stream.Position < _options.StxDelimiters.Length)
+							{
+								continue;
+							}
+						}
+						else
+						{
+							if (state.Stream.Position < _options.StxDelimiters.Length && state.Stream.Position < _options.EotDelimiters.Length)
+							{
+								continue;
+							}
+						}
+
+						bool foundEotDelimiters = CheckDelimiter(_options.EotDelimiters, state.Stream);
+						bool foundStxDelimiters = CheckDelimiter(_options.StxDelimiters, state.Stream);
+
+						if (foundEotDelimiters && foundStxDelimiters)
+						{
+							// Do nothing for now, but this is a really stupid case that "could" potentially happen
+						}
+
+						if (foundEotDelimiters && !foundStxDelimiters)
+						{
+							// Done, exit gracefuylly
+							endOfTransmission = true;
+							break; // consider return here
+						}
+
+						if (foundStxDelimiters && !foundEotDelimiters)
+						{
+							// Start search for ETX
+							state.Stream.Position = 0;
+							state.State = StateObject.FrameState.FindEtx;
+						}
+
+						continue;
+					}
+					case StateObject.FrameState.FindEtx:
+					{
+						if (state.Stream.Position < _options.EtxDelimiters.Length)
+						{
+							continue;
+						}
+
+						bool foundEtxDelimiters = CheckDelimiter(_options.EtxDelimiters, state.Stream);
+						if (foundEtxDelimiters)
+						{
+							long pos = state.Stream.Position;
+							byte[] data = new byte[(pos - _options.EtxDelimiters.Length)];
+							state.Stream.Position = 0;
+							state.Stream.Read(data, 0, (int) (pos - _options.EtxDelimiters.Length));
+
+							SubmitPayloadToPipeline(data);
+
+							// Done, change state
+							state.Stream.Position = 0;
+							state.State = StateObject.FrameState.FindStx;
+						}
+
+						continue;
+					}
+				}
+			}
+
+			return endOfTransmission;
+		}
+
+		private bool CheckDelimiter(byte[] delimiters, MemoryStream stream)
+		{
+			if (delimiters.Length == 0) return false;
+
+			long pos = stream.Position;
+			stream.Seek(-1*delimiters.Length, SeekOrigin.Current);
+			byte[] bytes = new byte[delimiters.Length];
+			stream.Read(bytes, 0, bytes.Length);
+
+			stream.Position = pos;
+			return ByteArrayCompare(bytes, delimiters);
+		}
+
+		private bool ByteArrayCompare(byte[] a1, byte[] a2)
+		{
+			if (a1.Length != a2.Length) return false;
+
+			for (int i = 0; i < a1.Length; i++) if (a1[i] != a2[i]) return false;
+
+			return true;
+		}
+
+		private void SubmitPayloadToPipeline(byte[] data)
 		{
 			Message message = new Message("text/plain");
-			message.Value = Encoding.ASCII.GetString(state.Stream.ToArray());
+			message.Value = Encoding.ASCII.GetString(data);
 			HostService.PublishMessage(this, message);
 			MessageSent.Set();
 		}
@@ -264,6 +242,80 @@ namespace Hie.Core.Endpoints
 		{
 			MessageSent.WaitOne(milisecondsTimeout);
 			MessageSent.Reset();
+		}
+	}
+
+	public class Options : IOptions
+	{
+		public const byte SOH = 0x01;
+		public const byte STX = 0x02;
+		public const byte ETX = 0x03;
+		public const byte EOT = 0x04;
+
+		public IPEndPoint Endpoint { get; set; }
+
+		public byte[] EotDelimiters { get; set; }
+		public byte[] SohDelimiters { get; set; }
+		public byte[] StxDelimiters { get; set; }
+		public byte[] EtxDelimiters { get; set; }
+
+		// Socket options
+		public bool NoDelay { get; set; }
+		public int ReceiveBufferSize { get; set; }
+		public int SendBufferSize { get; set; }
+
+		public Options()
+		{
+			// Defaults
+			SohDelimiters = new[] {SOH};
+			StxDelimiters = new[] {STX};
+			EtxDelimiters = new[] {ETX};
+			EotDelimiters = new[] {EOT};
+
+			// Selected Socket settings
+			NoDelay = false;
+			ReceiveBufferSize = 8192;
+			SendBufferSize = 8192;
+		}
+
+		public void Validate()
+		{
+			if (Endpoint == null) throw new ArgumentNullException("Invalid endpoint address familiy", new ArgumentNullException());
+			if (Endpoint != null && Endpoint.AddressFamily != AddressFamily.InterNetwork) throw new ArgumentException("Invalid endpoint address familiy: " + Endpoint.AddressFamily + ". Only InterNetwork allowed.");
+
+			if (StxDelimiters == null || EtxDelimiters == null) throw new ArgumentNullException("STX and ETX delimiters must be provided", new ArgumentNullException());
+
+			if (SohDelimiters == null) SohDelimiters = new byte[0];
+			if (EotDelimiters == null) EotDelimiters = new byte[0];
+
+			if (SohDelimiters.Length == 0 && EotDelimiters.Length != 0) throw new ArgumentException("If SOH is empty then EOT also needs to be empty");
+			if (SohDelimiters.Length != 0 && EotDelimiters.Length == 0) throw new ArgumentException("If EOT is empty then SOH also needs to be empty");
+			if (StxDelimiters.Length == 0 || EtxDelimiters.Length == 0) throw new ArgumentException("STX and ETX delimiters must be provided");
+		}
+	}
+
+	internal class StateObject
+	{
+		internal enum FrameState
+		{
+			FindSoh,
+			FindStx,
+			FindEtx,
+		}
+
+		internal Socket WorkSocket { get; private set; }
+		internal int BufferSize { get; private set; }
+		internal byte[] Buffer { get; private set; }
+		internal MemoryStream Stream { get; private set; }
+		internal FrameState State { get; set; }
+
+		public StateObject(Socket workSocket, int bufferSize = 8192)
+		{
+			WorkSocket = workSocket;
+			BufferSize = bufferSize;
+			Buffer = new byte[BufferSize];
+			Stream = new MemoryStream();
+			State = FrameState.FindSoh;
 		}
 	}
 }

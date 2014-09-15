@@ -23,6 +23,11 @@ namespace Hie.Core.Test
 			Messages.Add(message);
 		}
 
+		public override void Init(IOptions options)
+		{
+			throw new System.NotImplementedException();
+		}
+
 		public override void StartProcessing()
 		{
 		}

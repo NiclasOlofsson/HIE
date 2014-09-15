@@ -5,7 +5,7 @@ namespace Hie.Core.Model
 	public interface IEndpoint
 	{
 		Channel DirectTarget { get; set; }
-		ApplicationHost HostService { get; set; }
+		IApplicationHost HostService { get; set; }
 
 		void Init(IOptions options);
 

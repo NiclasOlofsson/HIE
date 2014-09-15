@@ -65,9 +65,11 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileReceiverEndpointTest.cs" />
     <Compile Include="MockEndpoint.cs" />
     <Compile Include="HieEngineTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TcpReceiveEndpointTest.cs" />
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>

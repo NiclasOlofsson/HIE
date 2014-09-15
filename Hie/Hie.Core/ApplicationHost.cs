@@ -4,7 +4,14 @@ using Hie.Core.Model;
 
 namespace Hie.Core
 {
-	public class ApplicationHost
+	public interface IApplicationHost
+	{
+		void Deploy(Application application);
+		void StartProcessing();
+		void PublishMessage(object source, Message message);
+	}
+
+	public class ApplicationHost: IApplicationHost
 	{
 		public IList<Application> Applications { get; set; }
 
@@ -95,4 +102,5 @@ namespace Hie.Core
 			}
 		}
 	}
+
 }
