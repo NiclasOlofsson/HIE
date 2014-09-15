@@ -40,3 +40,5 @@ Next time i need to explain TCP communication to someone, send them..
 	http://blogs.msdn.com/b/malarch/archive/2006/06/26/647993.aspx
 	And in regards to receivetimeout (implement the last answer): http://stackoverflow.com/questions/3466332/beginreceive-beginread-timeouts
 
+Perormance benchmarks for requirements needed. Right now for HIE 10.000 messages over TCP receiver (full transformation pipeline running in unit-test) => 6 seconds.
+

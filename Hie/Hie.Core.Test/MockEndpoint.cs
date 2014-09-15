@@ -8,7 +8,7 @@ namespace Hie.Core.Test
 	{
 		internal List<Message> Messages { get; set; }
 
-		public MockEndpoint(EndpointDirection direction) : base()
+		public MockEndpoint()
 		{
 			Messages = new List<Message>();
 		}

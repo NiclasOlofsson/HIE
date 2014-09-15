@@ -19,10 +19,10 @@ namespace Hie.Core.Test
 			Application application = new Application();
 
 			// Add endpoints
-			IEndpoint endpoint = new MockEndpoint(EndpointDirection.OneWayReceive);
+			IEndpoint endpoint = new MockEndpoint();
 			application.Endpoints.Add(endpoint);
 
-			IEndpoint sendEndpoint = new MockEndpoint(EndpointDirection.OneWaySend);
+			IEndpoint sendEndpoint = new MockEndpoint();
 			application.Endpoints.Add(sendEndpoint);
 
 			// Add a channel
@@ -105,10 +105,10 @@ namespace Hie.Core.Test
 			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789));
 			application.Endpoints.Add(receiveEndpoint);
 
-			IEndpoint sendEndpoint = new MockEndpoint(EndpointDirection.OneWaySend);
+			IEndpoint sendEndpoint = new MockEndpoint();
 			application.Endpoints.Add(sendEndpoint);
 
-			IEndpoint sendEndpoint2 = new MockEndpoint(EndpointDirection.OneWaySend);
+			IEndpoint sendEndpoint2 = new MockEndpoint();
 			application.Endpoints.Add(sendEndpoint2);
 
 			// Add a channel
@@ -132,26 +132,62 @@ namespace Hie.Core.Test
 
 
 			{
+				// Test default delimiters for SOH, STX, ETX and EOT
+
+				var options = receiveEndpoint.GetOptions();
+				options.SOHDelimiters = new byte[] {TcpReceiveEndpoint.SOH};
+				options.STXDelimiters = new byte[] {TcpReceiveEndpoint.STX};
+				options.ETXDelimiters = new byte[] {TcpReceiveEndpoint.ETX};
+				options.EOTDelimiters = new byte[] {TcpReceiveEndpoint.EOT};
+
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
 				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH}, 0, 1);
+
+				// Lets try a bit more message .. just for the fun of it ..
 				for (int i = 0; i < 100; i++)
 				{
-					client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
+					client.GetStream().Write(new byte[] {TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX}, 0, 6);
 					receiveEndpoint.WaitForMessage();
 				}
-				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.EOT }, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.EOT}, 0, 1);
 				client.Close();
 			}
 			{
+				// Test with multiple bytes in delimiters
+
+				var options = receiveEndpoint.GetOptions();
+				options.SOHDelimiters = new byte[] {TcpReceiveEndpoint.SOH, 0x11};
+				options.STXDelimiters = new byte[] {TcpReceiveEndpoint.STX, 0x11};
+				options.ETXDelimiters = new byte[] {TcpReceiveEndpoint.ETX, 0x11};
+				options.EOTDelimiters = new byte[] {TcpReceiveEndpoint.EOT, 0x11};
+
 				TcpClient client = new TcpClient();
 				client.Connect(IPAddress.Loopback, 6789);
-				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.SOH }, 0, 1);
-				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.SOH, 0x11}, 0, 2);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.STX, 0x011, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, 0x11}, 0, 8);
 				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX }, 0, 6);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.STX, 0x011, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX, 0x11}, 0, 8);
 				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] { TcpReceiveEndpoint.EOT }, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.EOT}, 0, 1);
+				client.Close();
+			}
+
+			{
+				// Test with no SOH or EOT (typical HL7 MLLPv1)
+
+				var options = receiveEndpoint.GetOptions();
+				options.SOHDelimiters = new byte[] {};
+				options.STXDelimiters = new byte[] {TcpReceiveEndpoint.STX};
+				options.ETXDelimiters = new byte[] {TcpReceiveEndpoint.ETX};
+				options.EOTDelimiters = new byte[] {};
+
+				TcpClient client = new TcpClient();
+				client.Connect(IPAddress.Loopback, 6789);
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX}, 0, 6);
+				receiveEndpoint.WaitForMessage();
+				client.GetStream().Write(new byte[] {TcpReceiveEndpoint.STX, 0x41, 0x41, 0x41, 0x41, TcpReceiveEndpoint.ETX}, 0, 6);
+				receiveEndpoint.WaitForMessage();
 				client.Close();
 			}
 
@@ -160,13 +196,12 @@ namespace Hie.Core.Test
 			MockEndpoint mockEndpoint2 = sendEndpoint2 as MockEndpoint;
 			Assert.IsNotNull(mockEndpoint);
 			Assert.IsNotNull(mockEndpoint.Messages);
-			Assert.AreEqual(102, mockEndpoint.Messages.Count);
-			Assert.AreEqual(102, mockEndpoint2.Messages.Count);
+			Assert.AreEqual(104, mockEndpoint.Messages.Count);
+			Assert.AreEqual(104, mockEndpoint2.Messages.Count);
 			foreach (Message message in mockEndpoint.Messages)
 			{
 				Assert.AreEqual("AAAA", message.Value);
 			}
-
 		}
 
 
