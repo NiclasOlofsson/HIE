@@ -11,7 +11,7 @@ namespace Hie.Core
 		void PublishMessage(object source, Message message);
 	}
 
-	public class ApplicationHost: IApplicationHost
+	public class ApplicationHost : IApplicationHost
 	{
 		public IList<Application> Applications { get; set; }
 
@@ -102,5 +102,4 @@ namespace Hie.Core
 			}
 		}
 	}
-
 }

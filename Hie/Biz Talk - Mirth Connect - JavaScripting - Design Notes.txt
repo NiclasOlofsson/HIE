@@ -1,3 +1,4 @@
+
 Transformer and filter script execution. Check the transform(..) calling evaluateScript(..) for the actual execution of the transformers/filters.
 
 	http://www.mirthproject.org/svn/trunk/server/src/com/mirth/connect/server/mule/transformers/JavaScriptTransformer.java
@@ -30,7 +31,9 @@ Best description of the BizTalk message box inner workings and principals
 
 	http://blogs.msdn.com/b/sanket/archive/2006/06/19/the-biztalk-server-messagebox.aspx
 	Promoted properties on above: http://msdn.microsoft.com/en-us/library/aa561535.aspx
-	More on the pipleline processing: http://msdn.microsoft.com/en-us/library/ee268059(v=bts.10).aspx
+	More on the pipleline processing: http://msdn.microsoft.com/en-us/library/aa561650(v=bts.80).aspx
+	and http://msdn.microsoft.com/en-us/library/aa560864(v=bts.80).aspx
+	and http://www.malgreve.net/2007/07/31/biztalk-server-pipeline-technology-explained/
 
 XML without delimiter reading from stream.
 

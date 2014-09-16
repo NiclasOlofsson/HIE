@@ -2,13 +2,13 @@
 using Hie.Core.Endpoints;
 using Hie.Core.Model;
 
-namespace Hie.Core.Test
+namespace Hie.Core.Test.Mocks
 {
-	public class MockEndpoint : EndpointBase
+	public class EndpointMock : EndpointBase
 	{
 		internal List<Message> Messages { get; set; }
 
-		public MockEndpoint()
+		public EndpointMock()
 		{
 			Messages = new List<Message>();
 		}

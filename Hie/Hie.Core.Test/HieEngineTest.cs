@@ -1,5 +1,6 @@
 ﻿using Hie.Core.Model;
 using Hie.Core.Modules.JavaScript;
+using Hie.Core.Test.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hie.Core.Test
@@ -14,10 +15,10 @@ namespace Hie.Core.Test
 			Application application = new Application();
 
 			// Add endpoints
-			IEndpoint endpoint = new MockEndpoint();
+			IEndpoint endpoint = new EndpointMock();
 			application.Endpoints.Add(endpoint);
 
-			IEndpoint sendEndpoint = new MockEndpoint();
+			IEndpoint sendEndpoint = new EndpointMock();
 			application.Endpoints.Add(sendEndpoint);
 
 			// Add a channel
@@ -68,14 +69,14 @@ namespace Hie.Core.Test
 
 			Message testMessage = new Message("text/json") {Value = TestUtils.BuildHl7JsonString()};
 			// Mock method for sending a test message
-			((MockEndpoint) endpoint).SendTestMessage(testMessage);
+			((EndpointMock) endpoint).SendTestMessage(testMessage);
 
 			// Check that endpoint received the message
-			MockEndpoint mockEndpoint = sendEndpoint as MockEndpoint;
-			Assert.IsNotNull(mockEndpoint);
-			Assert.IsNotNull(mockEndpoint.Messages);
-			Assert.AreEqual(2, mockEndpoint.Messages.Count);
-			foreach (Message message in mockEndpoint.Messages)
+			EndpointMock endpointMock = sendEndpoint as EndpointMock;
+			Assert.IsNotNull(endpointMock);
+			Assert.IsNotNull(endpointMock.Messages);
+			Assert.AreEqual(2, endpointMock.Messages.Count);
+			foreach (Message message in endpointMock.Messages)
 			{
 				Assert.AreNotSame(testMessage, message);
 				Assert.AreNotEqual(testMessage.Id, message.Id);
