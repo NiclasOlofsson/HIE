@@ -1,4 +1,4 @@
-namespace Hie.Core.Test
+namespace Hie.Core
 {
 	public class TestUtils
 	{

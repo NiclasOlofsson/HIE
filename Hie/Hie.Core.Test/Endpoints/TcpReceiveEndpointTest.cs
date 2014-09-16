@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using Hie.Core.Endpoints;
-using Hie.Core.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace Hie.Core.Test
+namespace Hie.Core.Endpoints
 {
 	[TestClass]
 	public class TcpReceiveEndpointTest
@@ -16,11 +15,11 @@ namespace Hie.Core.Test
 		public void EndpointInterfaceLifecycleTest()
 		{
 			// Host
-			var mockHost = new Mock<IApplicationHost>();
+			var host = new Mock<IApplicationHost>();
 
 			// Endpoint to test
 			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint();
-			receiveEndpoint.HostService = mockHost.Object;
+			receiveEndpoint.HostService = host.Object;
 
 			receiveEndpoint.Init(new Options() {Endpoint = new IPEndPoint(IPAddress.Any, 6789), NoDelay = true, ReceiveBufferSize = 8192});
 			receiveEndpoint.StartProcessing();
@@ -61,9 +60,8 @@ namespace Hie.Core.Test
 			}
 
 			receiveEndpoint.StopProcessing();
-
-			mockHost.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<Message>()), Times.Exactly(102));
-			mockHost.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.Is<Message>(message => message.Value == "AAAA")));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<byte[]>()), Times.Exactly(102));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.Is<byte[]>(indata => indata.SequenceEqual(new byte[] {0x41, 0x41, 0x41, 0x41}))));
 		}
 
 
@@ -86,8 +84,8 @@ namespace Hie.Core.Test
 			bool isEot = endpoint.ProcessIncomingStream(state.Buffer.Length, state);
 
 			Assert.IsTrue(isEot);
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<Message>()), Times.Once);
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.Is<Message>(message => message.Value == "AAAA")));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<byte[]>()), Times.Once);
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.Is<byte[]>(indata => indata.SequenceEqual(new byte[] {0x41, 0x41, 0x41, 0x41}))));
 		}
 
 		[TestMethod]
@@ -118,8 +116,8 @@ namespace Hie.Core.Test
 			bool isEot = endpoint.ProcessIncomingStream(state.Buffer.Length, state);
 
 			Assert.IsTrue(isEot);
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<Message>()), Times.Once);
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.Is<Message>(message => message.Value == "AAAA")));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<byte[]>()), Times.Once);
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.Is<byte[]>(indata => indata.SequenceEqual(new byte[] {0x41, 0x41, 0x41, 0x41}))));
 		}
 
 		[TestMethod]
@@ -161,8 +159,8 @@ namespace Hie.Core.Test
 				Assert.IsTrue(isEot);
 			}
 
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<Message>()), Times.AtLeast(1));
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.Is<Message>(message => message.Value == "AAAA")));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<byte[]>()), Times.AtLeast(3));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.Is<byte[]>(indata => indata.SequenceEqual(new byte[] {0x41, 0x41, 0x41, 0x41}))));
 		}
 
 
@@ -191,8 +189,8 @@ namespace Hie.Core.Test
 
 			Assert.IsFalse(isEot);
 
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<Message>()), Times.Once);
-			host.Verify(app => app.PublishMessage(It.IsAny<TcpReceiveEndpoint>(), It.Is<Message>(message => message.Value == "AAAA")));
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.IsNotNull<byte[]>()), Times.Once);
+			host.Verify(app => app.ProcessInPipeline(It.IsAny<TcpReceiveEndpoint>(), It.Is<byte[]>(indata => indata.SequenceEqual(new byte[] {0x41, 0x41, 0x41, 0x41}))));
 		}
 	}
 }

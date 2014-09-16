@@ -2,7 +2,7 @@
 using Hie.Core.Endpoints;
 using Hie.Core.Model;
 
-namespace Hie.Core.Test.Mocks
+namespace Hie.Core.Mocks
 {
 	public class EndpointMock : EndpointBase
 	{

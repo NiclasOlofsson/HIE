@@ -9,15 +9,25 @@ namespace Hie.Core
 		void Deploy(Application application);
 		void StartProcessing();
 		void PublishMessage(object source, Message message);
+		void ProcessInPipeline(IEndpoint source, byte[] data);
 	}
 
 	public class ApplicationHost : IApplicationHost
 	{
+		private IPipelineManager _pipelineManager;
 		public IList<Application> Applications { get; set; }
 
-		public ApplicationHost()
+		public ApplicationHost(IPipelineManager pipelineManager = null)
 		{
 			Applications = new List<Application>();
+			if (pipelineManager == null)
+			{
+				_pipelineManager = new PipelineManager(this);
+			}
+			else
+			{
+				_pipelineManager = pipelineManager;
+			}
 		}
 
 		public void Deploy(Application application)
@@ -100,6 +110,11 @@ namespace Hie.Core
 			{
 				throw new Exception(string.Format("Illegal route. Source: {0}, Message {2}", source, message.Id));
 			}
+		}
+
+		public void ProcessInPipeline(IEndpoint source, byte[] data)
+		{
+			_pipelineManager.PushPipelineData(source, data);
 		}
 	}
 }

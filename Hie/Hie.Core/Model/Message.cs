@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace Hie.Core.Model
 {
@@ -13,6 +16,7 @@ namespace Hie.Core.Model
 
 		public Dictionary<string, object> PromotedProperties { get; private set; }
 		public Dictionary<string, object> MessageMap { get; private set; }
+		public Stream Stream { get; set; }
 
 		public Message(string schema)
 		{
@@ -32,6 +36,14 @@ namespace Hie.Core.Model
 			clone.CloneSource = Id;
 			clone.CorrelationId = CorrelationId;
 			clone.Value = Value;
+			if (Stream != null)
+			{
+				clone.Stream = new MemoryStream();
+				long pos = Stream.Position;
+				Stream.CopyTo(clone.Stream);
+				Stream.Position = pos;
+				clone.Stream.Position = 0;
+			}
 
 			// Maps
 			clone.MessageMap = new Dictionary<string, object>(MessageMap);
@@ -43,6 +55,32 @@ namespace Hie.Core.Model
 		object ICloneable.Clone()
 		{
 			return Clone();
+		}
+
+		public T RetrieveAs<T>() where T : class
+		{
+			if (typeof (T) == typeof (XDocument) || typeof (T) == typeof (XNode))
+			{
+				Stream.Position = 0;
+				var doc = XDocument.Load(Stream) as T;
+				Stream.Position = 0;
+				return doc;
+			}
+			else if (typeof (T) == typeof (XmlDocument))
+			{
+				Stream.Position = 0;
+				var doc = new XmlDocument();
+				doc.Load(Stream);
+				Stream.Position = 0;
+				return doc as T;
+			}
+			else if (typeof (T) == typeof (Stream))
+			{
+				Stream.Position = 0;
+				return Stream as T;
+			}
+
+			return null;
 		}
 	}
 }

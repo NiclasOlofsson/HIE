@@ -1,9 +1,9 @@
-﻿using Hie.Core.Model;
+﻿using Hie.Core.Mocks;
+using Hie.Core.Model;
 using Hie.Core.Modules.JavaScript;
-using Hie.Core.Test.Mocks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Hie.Core.Test
+namespace Hie.Core
 {
 	[TestClass]
 	public class HieEngineTest

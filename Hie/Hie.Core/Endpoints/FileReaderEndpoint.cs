@@ -55,11 +55,10 @@ namespace Hie.Core.Endpoints
 		{
 			using (StreamReader reader = new StreamReader(_filePath, _encoding))
 			{
-				Message message = new Message("text/plain");
-				message.Value = reader.ReadToEnd();
+				string content = reader.ReadToEnd();
 				reader.Close();
 
-				HostService.PublishMessage(this, message);
+				HostService.ProcessInPipeline(this, Encoding.UTF8.GetBytes(content));
 
 				MessageSent.Set();
 			}

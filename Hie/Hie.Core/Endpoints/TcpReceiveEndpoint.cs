@@ -232,9 +232,7 @@ namespace Hie.Core.Endpoints
 
 		private void SubmitPayloadToPipeline(byte[] data)
 		{
-			Message message = new Message("text/plain");
-			message.Value = Encoding.ASCII.GetString(data);
-			HostService.PublishMessage(this, message);
+			HostService.ProcessInPipeline(this, data);
 			MessageSent.Set();
 		}
 

@@ -1,10 +1,9 @@
 ﻿using System.IO;
 using System.Text;
-using Hie.Core.Endpoints;
 using Hie.Core.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Hie.Core.Test
+namespace Hie.Core.Endpoints
 {
 	[TestClass]
 	public class FileReceiverEndpointTest
