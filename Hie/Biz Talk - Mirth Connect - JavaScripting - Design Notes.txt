@@ -45,3 +45,7 @@ Next time i need to explain TCP communication to someone, send them..
 
 Perormance benchmarks for requirements needed. Right now for HIE 10.000 messages over TCP receiver (full transformation pipeline running in unit-test) => 6 seconds.
 
+Note for self: Don't be tempted to make the pipleline async in relation to the endpoints. Read today that doing this will actually create a situation where a fast sender 
+can create uncontrolled resource allocation on server. Basically, if the read from sockets are connected to parsing of the messages a client won't be able to buffer up
+work in the server uncontrolled. So, this doesn't mean that it can't become async at a later stage, it just means that it needs to be designed with care.
+
