@@ -19,7 +19,7 @@ namespace Hie.Core.Model
 			using (StreamReader reader = new StreamReader(filePath))
 			{
 				string text = reader.ReadToEnd();
-				data = Encoding.Default.GetBytes(text);
+				data = Encoding.UTF8.GetBytes(text);
 			}
 
 			disassembler.Disassemble(data);
@@ -30,7 +30,7 @@ namespace Hie.Core.Model
 			Assert.IsNull(disassembler.NextMessage(), "Expected only one message from pipeline");
 
 			XDocument document = XDocument.Load("Hl7DisassemblerTest-hl7.xml");
-			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Parse(message.Value)));
+			Assert.IsTrue(XNode.DeepEquals(document, message.RetrieveAs<XDocument>()));
 		}
 	}
 }

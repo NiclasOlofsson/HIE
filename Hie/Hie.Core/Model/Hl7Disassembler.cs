@@ -26,12 +26,19 @@ namespace Hie.Core.Model
 		{
 			if (_stream.Position == _stream.Length) return null;
 
+			// Decode and convert ER7 data to XML
 			string hl7 = Encoding.UTF8.GetString(_stream.ToArray());
-			_stream.Seek(0, SeekOrigin.End); // We consumed all, so reflect it on stream
-			var document = Hl7ToXmlConverter.ConvertToXml(hl7);
+			XmlDocument document = Hl7ToXmlConverter.ConvertToXml(hl7);
 
 			Message message = new Message("text/xml");
 			message.Value = document.OuterXml;
+
+			MemoryStream ms = new MemoryStream();
+			document.Save(ms);
+			ms.Position = 0;
+			message.Stream = ms;
+
+			_stream.Seek(0, SeekOrigin.End); // We consumed all, so reflect it on stream
 
 			return message;
 		}
