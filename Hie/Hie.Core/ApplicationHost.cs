@@ -10,6 +10,7 @@ namespace Hie.Core
 		void StartProcessing();
 		void PublishMessage(object source, Message message);
 		void ProcessInPipeline(IEndpoint source, byte[] data);
+		void ProcessInPipeline(IEndpoint source, Message message);
 	}
 
 	public class ApplicationHost : IApplicationHost
@@ -102,7 +103,7 @@ namespace Hie.Core
 				{
 					foreach (var endpoint in application.Endpoints)
 					{
-						endpoint.ProcessMessage(source, message.Clone());
+						ProcessInPipeline(endpoint, message);
 					}
 				}
 			}
@@ -115,6 +116,11 @@ namespace Hie.Core
 		public void ProcessInPipeline(IEndpoint source, byte[] data)
 		{
 			_pipelineManager.PushPipelineData(source, data);
+		}
+
+		public void ProcessInPipeline(IEndpoint source, Message message)
+		{
+			_pipelineManager.PushPipelineData(source, message);
 		}
 	}
 }

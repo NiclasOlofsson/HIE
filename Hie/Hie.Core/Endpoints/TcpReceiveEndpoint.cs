@@ -13,22 +13,22 @@ namespace Hie.Core.Endpoints
 		public readonly ManualResetEvent MessageSent = new ManualResetEvent(false);
 
 		private TcpListener _listener;
-		private Options _options;
+		private TcpReceieveOptions _options;
 
 		public TcpReceiveEndpoint()
 		{
 		}
 
 		// For test
-		internal TcpReceiveEndpoint(IPEndPoint endpoint = null, Options options = null)
+		internal TcpReceiveEndpoint(IPEndPoint endpoint = null, TcpReceieveOptions options = null)
 		{
-			_options = options ?? new Options();
+			_options = options ?? new TcpReceieveOptions();
 			_options.Endpoint = endpoint;
 		}
 
-		public override void Init(IOptions options)
+		public override void Initialize(IOptions options)
 		{
-			_options = (Options) options;
+			_options = (TcpReceieveOptions) options;
 
 			// Validate options (since this will be coming from a human)
 			_options.Validate();
@@ -51,6 +51,11 @@ namespace Hie.Core.Endpoints
 		public override void ProcessMessage(object source, Message message)
 		{
 			//TODO: Implement send-side of things (maybe)
+		}
+
+		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
+		{
+			throw new NotImplementedException();
 		}
 
 		private void AcceptCallback(IAsyncResult ar)
@@ -243,7 +248,7 @@ namespace Hie.Core.Endpoints
 		}
 	}
 
-	public class Options : IOptions
+	public class TcpReceieveOptions : IOptions
 	{
 		public const byte SOH = 0x01;
 		public const byte STX = 0x02;
@@ -262,7 +267,7 @@ namespace Hie.Core.Endpoints
 		public int ReceiveBufferSize { get; set; }
 		public int SendBufferSize { get; set; }
 
-		public Options()
+		public TcpReceieveOptions()
 		{
 			// Defaults
 			SohDelimiters = new[] {SOH};

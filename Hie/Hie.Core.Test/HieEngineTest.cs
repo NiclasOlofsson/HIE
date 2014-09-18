@@ -1,4 +1,5 @@
-﻿using Hie.Core.Mocks;
+﻿using System.Text;
+using Hie.Core.Mocks;
 using Hie.Core.Model;
 using Hie.Core.Modules.JavaScript;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,7 +30,7 @@ namespace Hie.Core
 			Source source = new Source();
 			channel.Source = source;
 			source.Filters.Add(new DelegateFilter((src, message) => true));
-			source.Filters.Add(new JavaScriptFilter {Script = "true"});
+			source.Filters.Add(new JavaScriptFilter { Script = "true" });
 			source.Transformers.Add(new DelegateTransformer());
 			source.Transformers.Add(new DelegateTransformer((src, message) => { }));
 			source.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
@@ -38,7 +39,7 @@ namespace Hie.Core
 				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
 				destination.Filters.Add(new DelegateFilter((src, message) => true));
-				destination.Filters.Add(new JavaScriptFilter {Script = "true"});
+				destination.Filters.Add(new JavaScriptFilter { Script = "true" });
 				destination.Transformers.Add(new DelegateTransformer((src, message) => { }));
 				destination.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
 				channel.Destinations.Add(destination);
@@ -67,7 +68,7 @@ namespace Hie.Core
 
 			// Start the processing
 
-			Message testMessage = new Message("text/json") {Value = TestUtils.BuildHl7JsonString()};
+			Message testMessage = new Message("text/json") { Value = "AAAA" };
 			// Mock method for sending a test message
 			((EndpointMock) endpoint).SendTestMessage(testMessage);
 
@@ -76,17 +77,16 @@ namespace Hie.Core
 			Assert.IsNotNull(endpointMock);
 			Assert.IsNotNull(endpointMock.Messages);
 			Assert.AreEqual(2, endpointMock.Messages.Count);
-			foreach (Message message in endpointMock.Messages)
+			foreach (byte[] data in endpointMock.Messages)
 			{
-				Assert.AreNotSame(testMessage, message);
-				Assert.AreNotEqual(testMessage.Id, message.Id);
-				if (message.Value.EndsWith("test"))
+				string actual = Encoding.UTF8.GetString(data);
+				if (actual.EndsWith("test"))
 				{
-					Assert.AreEqual(testMessage.Value + "test", message.Value);
+					Assert.AreEqual(testMessage.Value + "test", actual);
 				}
 				else
 				{
-					Assert.AreEqual(testMessage.Value, message.Value);
+					Assert.AreEqual(testMessage.Value, actual);
 				}
 			}
 		}

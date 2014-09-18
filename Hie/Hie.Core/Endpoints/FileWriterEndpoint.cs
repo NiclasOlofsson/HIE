@@ -28,7 +28,7 @@ namespace Hie.Core.Endpoints
 			_append = append;
 		}
 
-		public override void Init(IOptions options)
+		public override void Initialize(IOptions options)
 		{
 			throw new System.NotImplementedException();
 		}
@@ -48,9 +48,13 @@ namespace Hie.Core.Endpoints
 
 		public override void ProcessMessage(object source, Message message)
 		{
+		}
+
+		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
+		{
 			using (StreamWriter writer = new StreamWriter(_filePath, _append, _encoding))
 			{
-				writer.Write(message.Value);
+				writer.Write(Encoding.UTF8.GetString(data));
 				writer.Close();
 				MessageSent.Set();
 			}

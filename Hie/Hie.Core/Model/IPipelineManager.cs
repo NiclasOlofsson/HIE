@@ -4,5 +4,6 @@ namespace Hie.Core.Model
 	{
 		void AddPipelineComponent(IEndpoint endpoint, IPipelineComponent pipelineComponent);
 		void PushPipelineData(IEndpoint endpoint, byte[] data);
+		void PushPipelineData(IEndpoint endpoint, Message message);
 	}
 }

@@ -23,7 +23,7 @@ namespace Hie.Core.Endpoints
 			_encoding = encoding;
 		}
 
-		public override void Init(IOptions options)
+		public override void Initialize(IOptions options)
 		{
 			throw new System.NotImplementedException();
 		}
@@ -48,6 +48,10 @@ namespace Hie.Core.Endpoints
 		}
 
 		public override void ProcessMessage(object source, Message message)
+		{
+		}
+
+		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
 		{
 		}
 

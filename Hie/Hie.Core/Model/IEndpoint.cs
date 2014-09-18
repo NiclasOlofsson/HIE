@@ -7,12 +7,13 @@ namespace Hie.Core.Model
 		Channel DirectTarget { get; set; }
 		IApplicationHost HostService { get; set; }
 
-		void Init(IOptions options);
+		void Initialize(IOptions options);
 
 		void StartProcessing();
 
 		void StopProcessing();
 
 		void ProcessMessage(object source, Message message);
+		void ProcessMessage(IEndpoint endpoint, byte[] data);
 	}
 }

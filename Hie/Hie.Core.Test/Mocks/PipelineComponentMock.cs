@@ -1,8 +1,9 @@
+using Hie.Core.Endpoints;
 using Hie.Core.Model;
 
 namespace Hie.Core.Mocks
 {
-	public class PipelineComponentMock : IDisassembler, IDecoder
+	public class PipelineComponentMock : IDisassembler, IDecoder, IEncoder
 	{
 		public byte[] Decode(byte[] data)
 		{
@@ -11,6 +12,11 @@ namespace Hie.Core.Mocks
 
 		public void Initialize(IOptions options)
 		{
+		}
+
+		public byte[] Encode(byte[] data)
+		{
+			return null;
 		}
 
 		public void Disassemble(byte[] data)

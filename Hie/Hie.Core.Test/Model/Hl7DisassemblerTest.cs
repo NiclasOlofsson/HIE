@@ -5,10 +5,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hie.Core.Model
 {
-	[TestClass()]
+	[TestClass]
 	public class Hl7DisassemblerTest
 	{
-		[TestMethod()]
+		[TestMethod]
 		public void DisassembleTest()
 		{
 			Hl7Disassembler disassembler = new Hl7Disassembler();

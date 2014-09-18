@@ -6,11 +6,11 @@ namespace Hie.Core.Mocks
 {
 	public class EndpointMock : EndpointBase
 	{
-		internal List<Message> Messages { get; set; }
+		internal List<byte[]> Messages { get; set; }
 
 		public EndpointMock()
 		{
-			Messages = new List<Message>();
+			Messages = new List<byte[]>();
 		}
 
 		public override void StopProcessing()
@@ -20,10 +20,15 @@ namespace Hie.Core.Mocks
 
 		public override void ProcessMessage(object source, Message message)
 		{
-			Messages.Add(message);
+			throw new System.NotImplementedException();
 		}
 
-		public override void Init(IOptions options)
+		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
+		{
+			Messages.Add(data);
+		}
+
+		public override void Initialize(IOptions options)
 		{
 			throw new System.NotImplementedException();
 		}

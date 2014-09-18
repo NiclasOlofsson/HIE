@@ -7,10 +7,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hie.Core.Model
 {
-	[TestClass()]
+	[TestClass]
 	public class XmlDisassemblerTest
 	{
-		[TestMethod()]
+		[TestMethod]
 		public void DisassembleXmlFromEndpointTest()
 		{
 			// Goal: Send in bytes (from stream) and get an XML document out
@@ -31,7 +31,7 @@ namespace Hie.Core.Model
 
 			Assert.IsNotNull(message);
 			Assert.IsNotNull(message.Stream);
-			Assert.IsTrue(data.SequenceEqual(((MemoryStream)message.RetrieveAs<Stream>()).ToArray()));
+			Assert.IsTrue(data.SequenceEqual(((MemoryStream) message.RetrieveAs<Stream>()).ToArray()));
 			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Parse(message.Value)));
 			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Load(message.Stream)));
 

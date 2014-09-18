@@ -21,7 +21,7 @@ namespace Hie.Core.Endpoints
 			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint();
 			receiveEndpoint.HostService = host.Object;
 
-			receiveEndpoint.Init(new Options() {Endpoint = new IPEndPoint(IPAddress.Any, 6789), NoDelay = true, ReceiveBufferSize = 8192});
+			receiveEndpoint.Initialize(new TcpReceieveOptions() {Endpoint = new IPEndPoint(IPAddress.Any, 6789), NoDelay = true, ReceiveBufferSize = 8192});
 			receiveEndpoint.StartProcessing();
 
 			// Try connection two clients and process messages
@@ -32,15 +32,15 @@ namespace Hie.Core.Endpoints
 				TcpClient client = new TcpClient();
 				client.NoDelay = true;
 				client.Connect(IPAddress.Loopback, 6789);
-				client.GetStream().Write(new byte[] {Options.SOH}, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.SOH}, 0, 1);
 
 				// Lets try a bit more message .. just for the fun of it ..
 				for (int i = 0; i < 100; i++)
 				{
-					client.GetStream().Write(new byte[] {Options.STX, 0x41, 0x41, 0x41, 0x41, Options.ETX}, 0, 6);
+					client.GetStream().Write(new byte[] {TcpReceieveOptions.STX, 0x41, 0x41, 0x41, 0x41, TcpReceieveOptions.ETX}, 0, 6);
 					receiveEndpoint.WaitForMessage();
 				}
-				client.GetStream().Write(new byte[] {Options.EOT}, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.EOT}, 0, 1);
 				client.Close();
 			}
 
@@ -50,12 +50,12 @@ namespace Hie.Core.Endpoints
 				TcpClient client = new TcpClient();
 				client.NoDelay = true;
 				client.Connect(IPAddress.Loopback, 6789);
-				client.GetStream().Write(new byte[] {Options.SOH}, 0, 1);
-				client.GetStream().Write(new byte[] {Options.STX, 0x41, 0x41, 0x41, 0x41, Options.ETX}, 0, 6);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.SOH}, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.STX, 0x41, 0x41, 0x41, 0x41, TcpReceieveOptions.ETX}, 0, 6);
 				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] {Options.STX, 0x41, 0x41, 0x41, 0x41, Options.ETX}, 0, 6);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.STX, 0x41, 0x41, 0x41, 0x41, TcpReceieveOptions.ETX}, 0, 6);
 				receiveEndpoint.WaitForMessage();
-				client.GetStream().Write(new byte[] {Options.EOT}, 0, 1);
+				client.GetStream().Write(new byte[] {TcpReceieveOptions.EOT}, 0, 1);
 				client.Close();
 			}
 
@@ -68,7 +68,7 @@ namespace Hie.Core.Endpoints
 		[TestMethod]
 		public void TcpReceiveEndpointSingleByteDelimitersTest()
 		{
-			var options = new Options();
+			var options = new TcpReceieveOptions();
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
 			endpoint.HostService = host.Object;
@@ -76,9 +76,9 @@ namespace Hie.Core.Endpoints
 			StateObject state = new StateObject(null);
 
 			List<byte> data = new List<byte>();
-			data.AddRange(new byte[] {Options.SOH});
-			data.AddRange(new byte[] {Options.STX, 0x41, 0x41, 0x41, 0x41, Options.ETX});
-			data.AddRange(new byte[] {Options.EOT});
+			data.AddRange(new byte[] {TcpReceieveOptions.SOH});
+			data.AddRange(new byte[] {TcpReceieveOptions.STX, 0x41, 0x41, 0x41, 0x41, TcpReceieveOptions.ETX});
+			data.AddRange(new byte[] {TcpReceieveOptions.EOT});
 			data.CopyTo(state.Buffer, 0);
 
 			bool isEot = endpoint.ProcessIncomingStream(state.Buffer.Length, state);
@@ -91,11 +91,11 @@ namespace Hie.Core.Endpoints
 		[TestMethod]
 		public void TcpReceiveEndpointMultiByteDelimitersTest()
 		{
-			var options = new Options();
-			options.SohDelimiters = new byte[] {Options.SOH, 0x06};
-			options.StxDelimiters = new byte[] {Options.STX, 0x06};
-			options.EtxDelimiters = new byte[] {Options.ETX, 0x06};
-			options.EotDelimiters = new byte[] {Options.EOT, 0x07};
+			var options = new TcpReceieveOptions();
+			options.SohDelimiters = new byte[] {TcpReceieveOptions.SOH, 0x06};
+			options.StxDelimiters = new byte[] {TcpReceieveOptions.STX, 0x06};
+			options.EtxDelimiters = new byte[] {TcpReceieveOptions.ETX, 0x06};
+			options.EotDelimiters = new byte[] {TcpReceieveOptions.EOT, 0x07};
 			//BUG: If the end-delimiter of STX and EOT match it will not detect EOT
 			//options.EOTDelimiters = new byte[] {TcpReceiveEndpoint.EOT, 0x06};
 
@@ -123,11 +123,11 @@ namespace Hie.Core.Endpoints
 		[TestMethod]
 		public void TcpReceiveEndpointMultiByteDelimitersSplittedBufferTest()
 		{
-			var options = new Options();
-			options.SohDelimiters = new byte[] {Options.SOH, 0x06};
-			options.StxDelimiters = new byte[] {Options.STX, 0x06};
-			options.EtxDelimiters = new byte[] {Options.ETX, 0x06};
-			options.EotDelimiters = new byte[] {Options.EOT, 0x07};
+			var options = new TcpReceieveOptions();
+			options.SohDelimiters = new byte[] {TcpReceieveOptions.SOH, 0x06};
+			options.StxDelimiters = new byte[] {TcpReceieveOptions.STX, 0x06};
+			options.EtxDelimiters = new byte[] {TcpReceieveOptions.ETX, 0x06};
+			options.EotDelimiters = new byte[] {TcpReceieveOptions.EOT, 0x07};
 
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
@@ -167,7 +167,7 @@ namespace Hie.Core.Endpoints
 		[TestMethod]
 		public void TcpReceiveEndpointMissingTransmissionDelimitersTest()
 		{
-			var options = new Options();
+			var options = new TcpReceieveOptions();
 			options.SohDelimiters = new byte[] {};
 			options.EotDelimiters = new byte[] {};
 

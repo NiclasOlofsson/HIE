@@ -66,11 +66,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Endpoints\FileReceiverEndpointTest.cs" />
-    <Compile Include="Endpoints\ReceivePipelineTest.cs" />
+    <Compile Include="Endpoints\PipelineTest.cs" />
     <Compile Include="Endpoints\TcpReceiveEndpointTest.cs" />
+    <Compile Include="Endpoints\TcpSendEndpointTest.cs" />
     <Compile Include="HieEngineTest.cs" />
     <Compile Include="Mocks\EndpointMock.cs" />
     <Compile Include="Mocks\PipelineComponentMock.cs" />
+    <Compile Include="Model\Hl7AssemblerTest.cs" />
     <Compile Include="Model\Hl7DisassemblerTest.cs" />
     <Compile Include="Model\MessageTest.cs" />
     <Compile Include="Model\XmlDisassemblerTest.cs" />

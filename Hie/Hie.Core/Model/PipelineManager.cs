@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Hie.Core.Model
@@ -19,7 +20,7 @@ namespace Hie.Core.Model
 
 		public void AddPipelineComponent(IEndpoint endpoint, IPipelineComponent pipelineComponent)
 		{
-			Queue<IPipelineComponent> pipeline = null;
+			Queue<IPipelineComponent> pipeline;
 
 			if (_pipelines.ContainsKey(endpoint))
 			{
@@ -47,28 +48,60 @@ namespace Hie.Core.Model
 			}
 			else
 			{
-				foreach (var component in pipeline)
+				byte[] decoded = null;
+				foreach (IDecoder component in pipeline.OfType<IDecoder>())
 				{
-					var decoder = component as IDecoder;
-					if (decoder != null)
+					decoded = component.Decode(data);
+					if (decoded != null) break;
+				}
+
+				if (decoded == null) return;
+
+				foreach (IDisassembler component in pipeline.OfType<IDisassembler>())
+				{
+					component.Disassemble(decoded);
+
+					Message message;
+					do
 					{
-						data = decoder.Decode(data);
-						continue;
-					}
+						message = component.NextMessage();
+						_applicationHost.PublishMessage(endpoint, message);
+					} while (message != null);
+				}
+			}
+		}
 
-					var disassembler = component as IDisassembler;
-					if (disassembler != null)
+		public void PushPipelineData(IEndpoint endpoint, Message message)
+		{
+			Queue<IPipelineComponent> pipeline;
+			if (!_pipelines.TryGetValue(endpoint, out pipeline))
+			{
+				//TODO: Temporary for testing
+				var data = Encoding.UTF8.GetBytes(message.Value);
+				endpoint.ProcessMessage(endpoint, data);
+			}
+			else
+			{
+				byte[] data = null;
+				foreach (IAssembler component in pipeline.OfType<IAssembler>())
+				{
+					component.AddMessage(message);
+					data = component.Assemble();
+
+					// Decide what to do if data is returned.
+					// Right now, we break out and go to encoders
+					if (data != null) break;
+				}
+
+				if (data == null) return;
+
+				foreach (IEncoder component in pipeline.OfType<IEncoder>())
+				{
+					data = component.Encode(data);
+
+					if (data != null)
 					{
-						disassembler.Disassemble(data);
-
-						Message message;
-						do
-						{
-							message = disassembler.NextMessage();
-							_applicationHost.PublishMessage(endpoint, message);
-						} while (message != null);
-
-						continue;
+						endpoint.ProcessMessage(endpoint, data);
 					}
 				}
 			}
