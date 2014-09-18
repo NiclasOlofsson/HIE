@@ -70,33 +70,39 @@ namespace Hie.Core.Endpoints
 			}
 		}
 
+		private object _closeLock = new object();
+
 		private void CloseConnection()
 		{
-			if (_options.EotDelimiters.Length > 0)
+			lock (_closeLock)
 			{
-				Write(_options.EotDelimiters, false);
+				if (_options.EotDelimiters.Length > 0)
+				{
+					Write(_options.EotDelimiters, false);
+				}
+
+				_client.Close();
+				_client = null;
 			}
-			_client.Close();
-			_client = null;
 		}
 
 		private void Write(byte[] data, bool async = true)
 		{
 			var stream = _client.GetStream();
-			if (async) stream.BeginWrite(data, 0, data.Length, WriteCallback, stream);
+			if (async) stream.BeginWrite(data, 0, data.Length, WriteCompleteCallback, stream);
 			else stream.Write(data, 0, data.Length);
 		}
 
-		private void WriteCallback(IAsyncResult ar)
+		private void WriteCompleteCallback(IAsyncResult ar)
 		{
-			NetworkStream stream = (NetworkStream) ar.AsyncState;
-			stream.EndWrite(ar);
-		}
-
-		private void BeginConnectCallback(IAsyncResult ar)
-		{
-			_client = (TcpClient) ar.AsyncState;
-			_client.EndConnect(ar);
+			lock (_closeLock)
+			{
+				if (_client != null && _client.Connected)
+				{
+					NetworkStream stream = (NetworkStream) ar.AsyncState;
+					stream.EndWrite(ar);
+				}
+			}
 		}
 	}
 

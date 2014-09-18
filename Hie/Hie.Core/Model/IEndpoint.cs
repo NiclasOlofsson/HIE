@@ -1,6 +1,4 @@
-﻿using Hie.Core.Endpoints;
-
-namespace Hie.Core.Model
+﻿namespace Hie.Core.Model
 {
 	public interface IEndpoint
 	{
@@ -14,6 +12,7 @@ namespace Hie.Core.Model
 		void StopProcessing();
 
 		void ProcessMessage(object source, Message message);
+
 		void ProcessMessage(IEndpoint endpoint, byte[] data);
 	}
 }
