@@ -8,6 +8,7 @@ namespace Hie.Core
 	{
 		void Deploy(Application application);
 		void StartProcessing();
+		void StopProcessing();
 		void PublishMessage(object source, Message message);
 		void ProcessInPipeline(IEndpoint source, byte[] data);
 		void ProcessInPipeline(IEndpoint source, Message message);
@@ -63,6 +64,17 @@ namespace Hie.Core
 				foreach (var endpoint in application.Endpoints)
 				{
 					endpoint.StartProcessing();
+				}
+			}
+		}
+
+		public void StopProcessing()
+		{
+			foreach (var application in Applications)
+			{
+				foreach (var endpoint in application.Endpoints)
+				{
+					endpoint.StopProcessing();
 				}
 			}
 		}

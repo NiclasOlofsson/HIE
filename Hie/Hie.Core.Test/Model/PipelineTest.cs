@@ -1,9 +1,8 @@
 ﻿using Hie.Core.Mocks;
-using Hie.Core.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
-namespace Hie.Core.Endpoints
+namespace Hie.Core.Model
 {
 	// A receive pipleline is responsible for the following:
 	// - decode (mime, etc)

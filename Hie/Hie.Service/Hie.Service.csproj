@@ -4,17 +4,18 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FF14BBA9-C847-44C4-ABE1-6AD2CEAFC12C}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{7927F123-4293-42FA-AE65-B78ACB696447}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Hie.Core</RootNamespace>
-    <AssemblyName>Hie.Core</AssemblyName>
+    <RootNamespace>Hie.Service</RootNamespace>
+    <AssemblyName>Hie.Service</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -31,14 +33,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>Hie.Service.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Jint, Version=2.1.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Jint.2.2.0\lib\portable-net40+sl50+win+wp80\Jint.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,42 +44,23 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="Topshelf">
+      <HintPath>..\packages\Topshelf.3.1.3\lib\net40-full\Topshelf.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ApplicationHost.cs" />
-    <Compile Include="Endpoints\EndpointBase.cs" />
-    <Compile Include="Endpoints\FileReaderEndpoint.cs" />
-    <Compile Include="Endpoints\FileWriterEndpoint.cs" />
-    <Compile Include="Endpoints\TcpReceiveEndpoint.cs" />
-    <Compile Include="Endpoints\TcpSendEndpoint.cs" />
-    <Compile Include="Model\Application.cs" />
-    <Compile Include="Model\Channel.cs" />
-    <Compile Include="Model\DelegateFilter.cs" />
-    <Compile Include="Model\DelegateTransformer.cs" />
-    <Compile Include="Model\Destination.cs" />
-    <Compile Include="Model\Hl7Disassembler.cs" />
-    <Compile Include="Model\IAssembler.cs" />
-    <Compile Include="Model\IDecoder.cs" />
-    <Compile Include="Model\IDisassembler.cs" />
-    <Compile Include="Model\IEncoder.cs" />
-    <Compile Include="Model\IEndpoint.cs" />
-    <Compile Include="Model\IFilter.cs" />
-    <Compile Include="Model\IOptions.cs" />
-    <Compile Include="Model\IPipelineComponent.cs" />
-    <Compile Include="Model\IPipelineManager.cs" />
-    <Compile Include="Model\ITransformer.cs" />
-    <Compile Include="Model\Message.cs" />
-    <Compile Include="Model\PipelineManager.cs" />
-    <Compile Include="Model\Source.cs" />
-    <Compile Include="Model\XmlDisassembler.cs" />
-    <Compile Include="Modules\JavaScript\JavaScriptFilter.cs" />
-    <Compile Include="Modules\JavaScript\JavaScriptTransformer.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Hie.Core\Hie.Core.csproj">
+      <Project>{FF14BBA9-C847-44C4-ABE1-6AD2CEAFC12C}</Project>
+      <Name>Hie.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

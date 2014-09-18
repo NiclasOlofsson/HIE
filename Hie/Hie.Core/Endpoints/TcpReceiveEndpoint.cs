@@ -55,7 +55,6 @@ namespace Hie.Core.Endpoints
 
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
 		{
-			throw new NotImplementedException();
 		}
 
 		private void AcceptCallback(IAsyncResult ar)

@@ -30,7 +30,6 @@ namespace Hie.Core.Endpoints
 
 		public override void Initialize(IOptions options)
 		{
-			throw new System.NotImplementedException();
 		}
 
 		public override void StartProcessing()
@@ -43,7 +42,6 @@ namespace Hie.Core.Endpoints
 
 		public override void StopProcessing()
 		{
-			throw new System.NotImplementedException();
 		}
 
 		public override void ProcessMessage(object source, Message message)
