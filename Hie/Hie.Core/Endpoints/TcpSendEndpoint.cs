@@ -74,16 +74,17 @@ namespace Hie.Core.Endpoints
 		{
 			if (_options.EotDelimiters.Length > 0)
 			{
-				Write(_options.EotDelimiters);
+				Write(_options.EotDelimiters, false);
 			}
 			_client.Close();
 			_client = null;
 		}
 
-		private void Write(byte[] data)
+		private void Write(byte[] data, bool async = true)
 		{
 			var stream = _client.GetStream();
-			stream.BeginWrite(data, 0, data.Length, WriteCallback, stream);
+			if (async) stream.BeginWrite(data, 0, data.Length, WriteCallback, stream);
+			else stream.Write(data, 0, data.Length);
 		}
 
 		private void WriteCallback(IAsyncResult ar)
