@@ -30,6 +30,7 @@ Examples of the types of endpoints that would be available in HIE...
 
 - File reader/writer
 - TCP receiver/sender
+- Serial receiver/sender
 - MSMQ receiver/sender
 - LLP
 - ASTM 1381/LIS-1

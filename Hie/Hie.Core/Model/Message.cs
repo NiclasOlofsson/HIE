@@ -140,7 +140,7 @@ namespace Hie.Core.Model
 			settings.OmitXmlDeclaration = true;
 			settings.Encoding = new UTF8Encoding(false);
 
-			XmlWriter writer = XmlTextWriter.Create(ms, settings);
+			XmlWriter writer = XmlWriter.Create(ms, settings);
 
 			document.WriteTo(writer);
 			SetValueFrom(ms.ToArray());

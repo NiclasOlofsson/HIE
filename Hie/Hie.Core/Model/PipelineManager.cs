@@ -91,16 +91,16 @@ namespace Hie.Core.Model
 					if (data != null) break;
 				}
 
-				if (data == null) return;
+				if (data == null) data = message.GetBytes();
 
 				foreach (IEncoder component in pipeline.OfType<IEncoder>())
 				{
 					data = component.Encode(data);
+				}
 
-					if (data != null)
-					{
-						endpoint.ProcessMessage(endpoint, data);
-					}
+				if (data != null)
+				{
+					endpoint.ProcessMessage(endpoint, data);
 				}
 			}
 		}

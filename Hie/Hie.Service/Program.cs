@@ -45,9 +45,9 @@ namespace Hie.Service
 				TcpSendOptions options = new TcpSendOptions() { Endpoint = new IPEndPoint(IPAddress.Loopback, 8756) };
 				options.SohDelimiters = new byte[0];
 				options.EotDelimiters = new byte[0];
-
 				sendEndpoint.Initialize(_applicationHost, options);
 				application.Endpoints.Add(sendEndpoint);
+				pipelineManager.AddPipelineComponent(sendEndpoint, new Hl7Assembler());
 			}
 			{
 				var fileEndpoint = new FileWriterEndpoint("service-output.txt", true, Encoding.UTF8, false);

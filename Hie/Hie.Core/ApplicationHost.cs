@@ -116,6 +116,7 @@ namespace Hie.Core
 				{
 					foreach (var endpoint in application.Endpoints)
 					{
+						
 						ProcessInPipeline(endpoint, message);
 					}
 				}
