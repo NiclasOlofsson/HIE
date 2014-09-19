@@ -11,12 +11,15 @@ namespace Hie.Core.Endpoints
 		private TcpClient _client;
 		private TcpSendOptions _options;
 
-		public override void Initialize(IOptions options)
+		public override void Initialize(IApplicationHost host, IOptions options)
 		{
-			_options = (TcpSendOptions) options;
+			if (options != null)
+			{
+				_options = (TcpSendOptions) options;
 
-			// Validate options (since this will be coming from a human)
-			_options.Validate();
+				// Validate options (since this will be coming from a human)
+				_options.Validate();
+			}
 		}
 
 		public override void StartProcessing()
@@ -29,10 +32,6 @@ namespace Hie.Core.Endpoints
 			{
 				CloseConnection();
 			}
-		}
-
-		public override void ProcessMessage(object source, Message message)
-		{
 		}
 
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
@@ -71,6 +70,7 @@ namespace Hie.Core.Endpoints
 		}
 
 		private object _closeLock = new object();
+		protected IApplicationHost _hostService;
 
 		private void CloseConnection()
 		{

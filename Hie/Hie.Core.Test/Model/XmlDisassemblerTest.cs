@@ -31,9 +31,8 @@ namespace Hie.Core.Model
 
 			Assert.IsNotNull(message);
 			Assert.IsNotNull(message.Stream);
-			Assert.IsTrue(data.SequenceEqual(((MemoryStream) message.RetrieveAs<Stream>()).ToArray()));
-			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Parse(message.Value)));
-			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Load(message.Stream)));
+			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Parse(message.GetString())));
+			Assert.IsTrue(XNode.DeepEquals(document, XDocument.Load(message.GetStream())));
 
 			// Move these to MessageTest instead
 			Assert.IsTrue(XNode.DeepEquals(document, message.RetrieveAs<XDocument>()));

@@ -6,6 +6,7 @@ namespace Hie.Core.Mocks
 {
 	public class EndpointMock : EndpointBase
 	{
+		protected IApplicationHost _hostService;
 		internal List<byte[]> Messages { get; set; }
 
 		public EndpointMock()
@@ -18,19 +19,14 @@ namespace Hie.Core.Mocks
 			throw new System.NotImplementedException();
 		}
 
-		public override void ProcessMessage(object source, Message message)
-		{
-			throw new System.NotImplementedException();
-		}
-
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
 		{
 			Messages.Add(data);
 		}
 
-		public override void Initialize(IOptions options)
+		public override void Initialize(IApplicationHost host, IOptions options)
 		{
-			throw new System.NotImplementedException();
+			_hostService = host;
 		}
 
 		public override void StartProcessing()
@@ -39,7 +35,7 @@ namespace Hie.Core.Mocks
 
 		public void SendTestMessage(Message testMessage)
 		{
-			HostService.PublishMessage(this, testMessage);
+			_hostService.PublishMessage(this, testMessage);
 		}
 	}
 }

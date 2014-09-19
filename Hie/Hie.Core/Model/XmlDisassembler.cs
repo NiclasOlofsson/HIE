@@ -29,19 +29,12 @@ namespace Hie.Core.Model
 			// it doesn't do envelope splitting yet. 
 			var message = new Message("text/xml");
 
-			// First clone the stream into message
-			MemoryStream stream = new MemoryStream();
-			_stream.CopyTo(stream);
-			stream.Position = 0;
-			message.Stream = stream;
-			_stream.Position = 0;
-
 			// Change this to use XmlReader in order to set the original encoding of the stream
 			// Actually, this string representation should really go away in the end. Message.Value 
 			// doesn't have a place in the future.
 			XmlDocument document = new XmlDocument();
 			document.Load(_stream);
-			message.Value = document.OuterXml;
+			message.SetValueFrom(document.OuterXml);
 
 			return message;
 		}

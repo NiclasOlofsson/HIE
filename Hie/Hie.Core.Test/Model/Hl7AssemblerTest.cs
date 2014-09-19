@@ -1,4 +1,9 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Xml.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Hie.Core.Model
 {
@@ -6,30 +11,66 @@ namespace Hie.Core.Model
 	public class Hl7AssemblerTest
 	{
 		[TestMethod]
-		[Ignore]
 		public void AssembleTest()
 		{
-			//Hl7Disassembler disassembler = new Hl7Disassembler();
+			XDocument document = XDocument.Load("Hl7DisassemblerTest-hl7.xml");
 
-			//string inputFilePath = "Hl7DisassemblerTest-hl7.xml";
-			//string outputfilePath = "Hl7DisassemblerTest-hl7.txt";
+			Message message = new Message("");
+			message.SetValueFrom(document);
 
-			//byte[] data = null;
-			//using (StreamReader reader = new StreamReader(inputFilePath))
-			//{
-			//	string text = reader.ReadToEnd();
-			//	data = Encoding.UTF8.GetBytes(text);
-			//}
+			Hl7Assembler assembler = new Hl7Assembler();
+			assembler.AddMessage(message);
+			byte[] result = assembler.Assemble();
+			Assert.IsNotNull(result);
 
-			//disassembler.Disassemble(data);
+			byte[] expected;
+			using (StreamReader reader = new StreamReader("Hl7DisassemblerTest-hl7-2.txt"))
+			{
+				string text = reader.ReadToEnd();
+				expected = Encoding.UTF8.GetBytes(text);
+			}
 
-			//Message message = disassembler.NextMessage();
-			//Assert.IsNotNull(message);
+			Assert.IsTrue(expected.SequenceEqual(result));
+		}
 
-			//Assert.IsNull(disassembler.NextMessage(), "Expected only one message from pipeline");
+		[TestMethod]
+		public void XmlToHl7ConverterTest()
+		{
+			XDocument document = XDocument.Load("Hl7DisassemblerTest-hl7.xml");
 
-			//XDocument document = XDocument.Load(outputfilePath);
-			//Assert.IsTrue(XNode.DeepEquals(document, message.RetrieveAs<XDocument>()));
+			var element = document.Descendants("MSH.19.1").FirstOrDefault();
+			Assert.AreEqual(" ", element.Value);
+
+			String segmentSeparator = "\r";
+			String fieldSeparator = "|";
+			String componentSeparator = "^";
+			String repetitionSeparator = "~";
+			String subcomponentSeparator = "&";
+			String escapeCharacter = "\\";
+
+			var converter = new XmlToHl7Converter(segmentSeparator, fieldSeparator, componentSeparator, repetitionSeparator, escapeCharacter, subcomponentSeparator, true);
+			byte[] result = converter.Convert(document);
+			Assert.IsNotNull(result);
+
+			string outFilePath = "hl7-assembler-test-out.txt";
+			using (StreamWriter writer = new StreamWriter(outFilePath))
+			{
+				writer.Write(Encoding.UTF8.GetString(result));
+				writer.Close();
+			}
+
+			byte[] expected = null;
+			using (StreamReader reader = new StreamReader("Hl7DisassemblerTest-hl7-2.txt"))
+			{
+				string text = reader.ReadToEnd();
+				expected = Encoding.UTF8.GetBytes(text);
+			}
+
+			Assert.AreEqual(expected[0], result[0]);
+			Assert.AreEqual(expected[1], result[1]);
+			Assert.AreEqual(expected[expected.Length - 5], result[expected.Length - 5], "Failed with | and \" differ at end of the second segment");
+			Assert.AreEqual(expected.Length, result.Length);
+			Assert.IsTrue(expected.SequenceEqual(result), "Expected and result message didn't match.");
 		}
 	}
 }

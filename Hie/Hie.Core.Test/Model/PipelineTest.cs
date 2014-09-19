@@ -92,6 +92,13 @@ namespace Hie.Core.Model
 				.Returns(new byte[] { 0x03 })
 				;
 
+			disassemblerMock.SetupSequence(disassembler => disassembler.NextMessage())
+				.Returns(new Message("").SetValueFrom("1"))
+				.Returns(new Message("").SetValueFrom("2"))
+				.Returns(new Message("").SetValueFrom("3"))
+				.Returns(new Message("").SetValueFrom("4"))
+				;
+
 			// Receive pipeline tests
 
 			byte[] data = new byte[0];
@@ -109,6 +116,10 @@ namespace Hie.Core.Model
 			disassemblerMock.Verify(disassembler => disassembler.Disassemble(It.Is<byte[]>(bytes => bytes[0] == 0x03)), Times.Once);
 
 			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.IsAny<Message>()), Times.Exactly(4));
+			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("1"))), Times.Once);
+			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("2"))), Times.Once);
+			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("3"))), Times.Once);
+			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("4"))), Times.Once);
 
 			// Send pipeline tests
 
@@ -118,7 +129,7 @@ namespace Hie.Core.Model
 			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
 			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
 
-			assemblerMock.Verify(assembler => assembler.AddMessage(It.Is<Message>(msg => msg.Value == null)), Times.Exactly(4));
+			assemblerMock.Verify(assembler => assembler.AddMessage(It.IsNotNull<Message>()), Times.Exactly(4));
 
 			encoderMock.Verify(encoder => encoder.Encode(It.IsAny<byte[]>()), Times.Exactly(4));
 			encoderMock.Verify(encoder => encoder.Encode(It.Is<byte[]>(bytes => bytes[0] == 0x00)), Times.Once);

@@ -33,7 +33,7 @@ namespace Hie.Core
 			source.Filters.Add(new JavaScriptFilter { Script = "true" });
 			source.Transformers.Add(new DelegateTransformer());
 			source.Transformers.Add(new DelegateTransformer((src, message) => { }));
-			source.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
+			source.Transformers.Add(new DelegateTransformer((src, message) => message.SetValueFrom(message.GetString())));
 
 			{
 				Destination destination = new Destination();
@@ -41,7 +41,7 @@ namespace Hie.Core
 				destination.Filters.Add(new DelegateFilter((src, message) => true));
 				destination.Filters.Add(new JavaScriptFilter { Script = "true" });
 				destination.Transformers.Add(new DelegateTransformer((src, message) => { }));
-				destination.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value; }));
+				destination.Transformers.Add(new DelegateTransformer((src, message) => message.SetValueFrom(message.GetString())));
 				channel.Destinations.Add(destination);
 			}
 			{
@@ -57,7 +57,7 @@ namespace Hie.Core
 				Destination destination = new Destination();
 				destination.Target = sendEndpoint;
 				destination.Filters.Add(new DelegateFilter((src, message) => true));
-				destination.Transformers.Add(new DelegateTransformer((src, message) => { message.Value = message.Value + "test"; }));
+				destination.Transformers.Add(new DelegateTransformer((src, message) => message.SetValueFrom(message.GetString() + "test")));
 				channel.Destinations.Add(destination);
 			}
 
@@ -68,7 +68,8 @@ namespace Hie.Core
 
 			// Start the processing
 
-			Message testMessage = new Message("text/json") { Value = "AAAA" };
+			Message testMessage = new Message("text/json");
+			testMessage.SetValueFrom("AAAA");
 			// Mock method for sending a test message
 			((EndpointMock) endpoint).SendTestMessage(testMessage);
 
@@ -82,11 +83,11 @@ namespace Hie.Core
 				string actual = Encoding.UTF8.GetString(data);
 				if (actual.EndsWith("test"))
 				{
-					Assert.AreEqual(testMessage.Value + "test", actual);
+					Assert.AreEqual(testMessage.GetString() + "test", actual);
 				}
 				else
 				{
-					Assert.AreEqual(testMessage.Value, actual);
+					Assert.AreEqual(testMessage.GetString(), actual);
 				}
 			}
 		}

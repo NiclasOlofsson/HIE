@@ -14,6 +14,7 @@ namespace Hie.Core.Endpoints
 
 		private TcpListener _listener;
 		private TcpReceieveOptions _options;
+		protected IApplicationHost _hostService;
 
 		public TcpReceiveEndpoint()
 		{
@@ -26,12 +27,16 @@ namespace Hie.Core.Endpoints
 			_options.Endpoint = endpoint;
 		}
 
-		public override void Initialize(IOptions options)
+		public override void Initialize(IApplicationHost host, IOptions options)
 		{
-			_options = (TcpReceieveOptions) options;
+			_hostService = host;
+			if (options != null)
+			{
+				_options = (TcpReceieveOptions) options;
 
-			// Validate options (since this will be coming from a human)
-			_options.Validate();
+				// Validate options (since this will be coming from a human)
+				_options.Validate();
+			}
 		}
 
 		public override void StartProcessing()
@@ -46,11 +51,6 @@ namespace Hie.Core.Endpoints
 		public override void StopProcessing()
 		{
 			_listener.Stop();
-		}
-
-		public override void ProcessMessage(object source, Message message)
-		{
-			//TODO: Implement send-side of things (maybe)
 		}
 
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
@@ -236,7 +236,7 @@ namespace Hie.Core.Endpoints
 
 		private void SubmitPayloadToPipeline(byte[] data)
 		{
-			HostService.ProcessInPipeline(this, data);
+			_hostService.ProcessInPipeline(this, data);
 			MessageSent.Set();
 		}
 

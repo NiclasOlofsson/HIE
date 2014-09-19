@@ -28,8 +28,9 @@ namespace Hie.Core.Endpoints
 			_append = append;
 		}
 
-		public override void Initialize(IOptions options)
+		public override void Initialize(IApplicationHost host, IOptions options)
 		{
+			_hostService = host;
 		}
 
 		public override void StartProcessing()
@@ -44,10 +45,6 @@ namespace Hie.Core.Endpoints
 		{
 		}
 
-		public override void ProcessMessage(object source, Message message)
-		{
-		}
-
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
 		{
 			using (StreamWriter writer = new StreamWriter(_filePath, _append, _encoding))
@@ -59,6 +56,7 @@ namespace Hie.Core.Endpoints
 		}
 
 		public readonly ManualResetEvent MessageSent = new ManualResetEvent(false);
+		protected IApplicationHost _hostService;
 
 		public void WaitForMessage(int milisecondsTimeout = 1000)
 		{

@@ -16,19 +16,20 @@ namespace Hie.Core
 
 	public class ApplicationHost : IApplicationHost
 	{
-		private IPipelineManager _pipelineManager;
-		public IList<Application> Applications { get; set; }
+		public IPipelineManager PipelineManager { get; set; }
+
+		public IList<Application> Applications { get; private set; }
 
 		public ApplicationHost(IPipelineManager pipelineManager = null)
 		{
 			Applications = new List<Application>();
 			if (pipelineManager == null)
 			{
-				_pipelineManager = new PipelineManager(this);
+				PipelineManager = new PipelineManager(this);
 			}
 			else
 			{
-				_pipelineManager = pipelineManager;
+				PipelineManager = pipelineManager;
 			}
 		}
 
@@ -51,7 +52,7 @@ namespace Hie.Core
 			// Setup endpoints
 			foreach (var endpoint in application.Endpoints)
 			{
-				endpoint.HostService = this;
+				endpoint.Initialize(this, null);
 			}
 
 			Applications.Add(application);
@@ -127,12 +128,12 @@ namespace Hie.Core
 
 		public void ProcessInPipeline(IEndpoint source, byte[] data)
 		{
-			_pipelineManager.PushPipelineData(source, data);
+			PipelineManager.PushPipelineData(source, data);
 		}
 
 		public void ProcessInPipeline(IEndpoint source, Message message)
 		{
-			_pipelineManager.PushPipelineData(source, message);
+			PipelineManager.PushPipelineData(source, message);
 		}
 	}
 }

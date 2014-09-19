@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Hie.Core.Model
 {
@@ -43,7 +42,7 @@ namespace Hie.Core.Model
 			{
 				// Temporary. Remove during refactoring of endpoints.
 				Message message = new Message("text/plain");
-				message.Value = Encoding.UTF8.GetString(data);
+				message.SetValueFrom(data);
 				_applicationHost.PublishMessage(endpoint, message);
 			}
 			else
@@ -55,7 +54,7 @@ namespace Hie.Core.Model
 					if (decoded != null) break;
 				}
 
-				if (decoded == null) return;
+				if (decoded == null) decoded = data;
 
 				foreach (IDisassembler component in pipeline.OfType<IDisassembler>())
 				{
@@ -65,7 +64,7 @@ namespace Hie.Core.Model
 					do
 					{
 						message = component.NextMessage();
-						_applicationHost.PublishMessage(endpoint, message);
+						if (message != null) _applicationHost.PublishMessage(endpoint, message);
 					} while (message != null);
 				}
 			}
@@ -77,8 +76,7 @@ namespace Hie.Core.Model
 			if (!_pipelines.TryGetValue(endpoint, out pipeline))
 			{
 				//TODO: Temporary for testing
-				var data = Encoding.UTF8.GetBytes(message.Value);
-				endpoint.ProcessMessage(endpoint, data);
+				endpoint.ProcessMessage(endpoint, message.GetBytes());
 			}
 			else
 			{

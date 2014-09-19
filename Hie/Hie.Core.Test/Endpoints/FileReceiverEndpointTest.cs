@@ -26,7 +26,6 @@ namespace Hie.Core.Endpoints
 			// Add a channel
 			Channel channel = new Channel();
 			application.Channels.Add(channel);
-			fileReaderEndpoint.DirectTarget = channel;
 
 			// Source setup
 			Source source = new Source();

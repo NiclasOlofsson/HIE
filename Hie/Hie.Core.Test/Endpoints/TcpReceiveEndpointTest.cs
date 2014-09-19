@@ -19,9 +19,8 @@ namespace Hie.Core.Endpoints
 
 			// Endpoint to test
 			TcpReceiveEndpoint receiveEndpoint = new TcpReceiveEndpoint();
-			receiveEndpoint.HostService = host.Object;
 
-			receiveEndpoint.Initialize(new TcpReceieveOptions() { Endpoint = new IPEndPoint(IPAddress.Any, 6789), NoDelay = true, ReceiveBufferSize = 8192 });
+			receiveEndpoint.Initialize(host.Object, new TcpReceieveOptions() { Endpoint = new IPEndPoint(IPAddress.Any, 6799), NoDelay = true, ReceiveBufferSize = 8192 });
 			receiveEndpoint.StartProcessing();
 
 			// Try connection two clients and process messages
@@ -31,7 +30,7 @@ namespace Hie.Core.Endpoints
 			{
 				TcpClient client = new TcpClient();
 				client.NoDelay = true;
-				client.Connect(IPAddress.Loopback, 6789);
+				client.Connect(IPAddress.Loopback, 6799);
 				client.GetStream().Write(new byte[] { TcpReceieveOptions.SOH }, 0, 1);
 
 				// Lets try a bit more message .. just for the fun of it ..
@@ -49,7 +48,7 @@ namespace Hie.Core.Endpoints
 			{
 				TcpClient client = new TcpClient();
 				client.NoDelay = true;
-				client.Connect(IPAddress.Loopback, 6789);
+				client.Connect(IPAddress.Loopback, 6799);
 				client.GetStream().Write(new byte[] { TcpReceieveOptions.SOH }, 0, 1);
 				client.GetStream().Write(new byte[] { TcpReceieveOptions.STX, 0x41, 0x41, 0x41, 0x41, TcpReceieveOptions.ETX }, 0, 6);
 				receiveEndpoint.WaitForMessage();
@@ -71,7 +70,7 @@ namespace Hie.Core.Endpoints
 			var options = new TcpReceieveOptions();
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
-			endpoint.HostService = host.Object;
+			endpoint.Initialize(host.Object, options);
 
 			StateObject state = new StateObject(null);
 
@@ -101,7 +100,7 @@ namespace Hie.Core.Endpoints
 
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
-			endpoint.HostService = host.Object;
+			endpoint.Initialize(host.Object, options);
 
 			StateObject state = new StateObject(null);
 
@@ -131,7 +130,7 @@ namespace Hie.Core.Endpoints
 
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
-			endpoint.HostService = host.Object;
+			endpoint.Initialize(host.Object, options);
 
 			StateObject state = new StateObject(null);
 
@@ -173,7 +172,7 @@ namespace Hie.Core.Endpoints
 
 			TcpReceiveEndpoint endpoint = new TcpReceiveEndpoint(new IPEndPoint(IPAddress.Any, 6789), options);
 			var host = new Mock<IApplicationHost>();
-			endpoint.HostService = host.Object;
+			endpoint.Initialize(host.Object, options);
 
 			StateObject state = new StateObject(null);
 

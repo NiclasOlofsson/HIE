@@ -33,13 +33,16 @@ Examples of the types of endpoints that would be available in HIE...
 - MSMQ receiver/sender
 - LLP
 - ASTM 1381/LIS-1
+- HTTP listeners (REST web services)
+- HTTP clients (REST web services)
+- WCF services (.NET specific stuff, SOAP and web service in general)
 
 An endpoint also contain a pipeline object responsible for encoding and decoding incoming/outgoing messages, as well as adapting these to the message structure of HIE, as well as setting router properties on messages.
 
 Examples of pipelines that would be supported by HIE...
 
-- NoOp transcoding
-- ER transcoding
+- NoOp transcoding (also called RAW or binary)
+- ER7 transcoding (HL7 v2.x and ASTM1394/LIS-2)
 - JSON transcoding
 - XML transcoding
 
@@ -81,6 +84,19 @@ Unfortunatly, most messaging in healthcare deal with exactly that (repeating seg
 
 This is usally completely beyond scope for many people working in healthcare integration since they are usually "occational interface developers". Many do not do interfacing full time. They also tend to have a rather clinical/technical background, and only in the best of cases from healthcare IT. Very few have real coding knowledge, experience or even skills. Part from having difficulties doing JavaScripting, Mirth Connects actual development environment is an absolut disaster from an IDE perspective.
 
+## Filters & Transformers options
+Thanks to .NET wide availability of script-environments it is possible to offer many different ways to create filters and transformers. At this time the following _to be supported_ technologies have been identified:
+
+- JavaScript
+- TypeScript
+- C#
+- Ruby
+- Phyton
+- XSLT
+- JSON based transformations
+
+As an alternative strict declarative transformations and filtering, a HIE specific expression model would also work. Primarily to provide usability for people not in the category of "script kids". This style of transformations would suppoort both **value based mapping** as well as **type based mapping** making it possible to configure support for unknown repeated segments in a message.
+
 ##IDE for HIE
 At the end of the day, HIE is really about the integrated development environment for interface (integration) development, and a lot about usability.
 
@@ -95,4 +111,8 @@ The idea of the IDE for HIE is to use a platform similar to Visual Studio, but s
 ## I am Learning!
 
 This whole things is a learning process (obviously), for me personally. If you want to follow that (My) learning process, follow this README but also this document: https://github.com/NiclasOlofsson/HIE/blob/master/Hie/Biz%20Talk%20-%20Mirth%20Connect%20-%20JavaScripting%20-%20Design%20Notes.txt
+
+## Branching strategy
+
+Will be using the Gitflow workflow https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow/ for this eventually, but right now history is in _master_.
 

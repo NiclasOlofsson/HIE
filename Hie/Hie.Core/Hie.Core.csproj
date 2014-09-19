@@ -59,7 +59,9 @@
     <Compile Include="Model\DelegateFilter.cs" />
     <Compile Include="Model\DelegateTransformer.cs" />
     <Compile Include="Model\Destination.cs" />
+    <Compile Include="Model\Hl7Assembler.cs" />
     <Compile Include="Model\Hl7Disassembler.cs" />
+    <Compile Include="Model\Hl7ToXmlConverter.cs" />
     <Compile Include="Model\IAssembler.cs" />
     <Compile Include="Model\IDecoder.cs" />
     <Compile Include="Model\IDisassembler.cs" />
@@ -74,6 +76,7 @@
     <Compile Include="Model\PipelineManager.cs" />
     <Compile Include="Model\Source.cs" />
     <Compile Include="Model\XmlDisassembler.cs" />
+    <Compile Include="Model\XmlToHl7Converter.cs" />
     <Compile Include="Modules\JavaScript\JavaScriptFilter.cs" />
     <Compile Include="Modules\JavaScript\JavaScriptTransformer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

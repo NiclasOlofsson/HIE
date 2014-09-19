@@ -15,6 +15,7 @@ namespace Hie.Core.Endpoints
 		private Encoding _encoding;
 
 		public readonly ManualResetEvent MessageSent = new ManualResetEvent(false);
+		protected IApplicationHost _hostService;
 
 		public FileReaderEndpoint(string filePath, int pollingInterval, Encoding encoding) : base()
 		{
@@ -23,9 +24,9 @@ namespace Hie.Core.Endpoints
 			_encoding = encoding;
 		}
 
-		public override void Initialize(IOptions options)
+		public override void Initialize(IApplicationHost host, IOptions options)
 		{
-			throw new System.NotImplementedException();
+			_hostService = host;
 		}
 
 		public override void StartProcessing()
@@ -47,10 +48,6 @@ namespace Hie.Core.Endpoints
 			throw new System.NotImplementedException();
 		}
 
-		public override void ProcessMessage(object source, Message message)
-		{
-		}
-
 		public override void ProcessMessage(IEndpoint endpoint, byte[] data)
 		{
 		}
@@ -62,7 +59,7 @@ namespace Hie.Core.Endpoints
 				string content = reader.ReadToEnd();
 				reader.Close();
 
-				HostService.ProcessInPipeline(this, Encoding.UTF8.GetBytes(content));
+				_hostService.ProcessInPipeline(this, Encoding.UTF8.GetBytes(content));
 
 				MessageSent.Set();
 			}

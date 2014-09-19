@@ -15,7 +15,7 @@ namespace Hie.Core.Endpoints
 			TcpSendEndpoint sendEndpoint = new TcpSendEndpoint();
 			TcpSendOptions options = new TcpSendOptions();
 			options.Endpoint = new IPEndPoint(IPAddress.Loopback, 6789);
-			sendEndpoint.Initialize(options);
+			sendEndpoint.Initialize(null, options);
 
 			// start a tcp listener
 			TcpListener listener = new TcpListener(new IPEndPoint(IPAddress.Any, 6789));
