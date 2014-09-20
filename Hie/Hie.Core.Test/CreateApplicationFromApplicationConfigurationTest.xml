@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ApplicationConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<Name>MyApplication</Name>
+	<Description>A test application for TDD HIE</Description>
+	<Endpoints>
+		<EndpointConfiguration>
+			<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+		</EndpointConfiguration>
+		<EndpointConfiguration>
+			<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+		</EndpointConfiguration>
+	</Endpoints>
+	<Channels>
+		<ChannelConfiguration>
+			<Name>Test channel</Name>
+			<Description>A test channel</Description>
+			<Source>
+				<Filters>
+					<FilterConfiguration>
+						<TypeInfo>Hie.Core.Model.DelegateFilter, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+						<Options>
+							<Property name="property1">
+								<Value><![CDATA[value1&]]></Value>
+							</Property>
+							<Property name="property2">
+								<Value>
+									<![CDATA[value2
+
+value2]]>
+								</Value>
+							</Property>
+							<Property name="property3">
+								<Value><![CDATA[value3]]></Value>
+							</Property>
+						</Options>
+					</FilterConfiguration>
+				</Filters>
+				<Transformers>
+					<TransformerConfiguration>
+						<TypeInfo>Hie.Core.Model.DelegateTransformer, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+					</TransformerConfiguration>
+				</Transformers>
+			</Source>
+			<Destinations>
+				<DestinationConfiguration>
+					<Filters>
+						<FilterConfiguration>
+							<TypeInfo>Hie.Core.Model.DelegateFilter, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+						</FilterConfiguration>
+					</Filters>
+					<Transformers>
+						<TransformerConfiguration>
+							<TypeInfo>Hie.Core.Model.DelegateTransformer, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+						</TransformerConfiguration>
+					</Transformers>
+				</DestinationConfiguration>
+			</Destinations>
+		</ChannelConfiguration>
+	</Channels>
+</ApplicationConfiguration>

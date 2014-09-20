@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml;
@@ -15,7 +13,7 @@ namespace Hie.Core.Configuration
 	public class ConfigurationTest
 	{
 		[TestMethod]
-		public void CreateConfigurationTest()
+		public void ApplicationConfigurationSerializationRountripTest()
 		{
 			ApplicationConfiguration config = new ApplicationConfiguration();
 			config.Name = "MyApplication";
@@ -50,7 +48,7 @@ namespace Hie.Core.Configuration
 					FilterConfiguration filter = new FilterConfiguration();
 					var typeInfo = typeof (DelegateFilter).GetTypeInfo();
 					filter.TypeInfo = typeInfo.AssemblyQualifiedName;
-					DictionaryProxy<string, string> options = new DictionaryProxy<string, string>(new Dictionary<string, string>());
+					DictionaryProxy<string> options = new DictionaryProxy<string>(new Dictionary<string, string>());
 					options.Add("property1", "value1&");
 					options.Add("property2", "value2\n\nvalue2");
 					options.Add("property3", "value3");
@@ -80,28 +78,90 @@ namespace Hie.Core.Configuration
 				}
 			}
 
-			XmlSerializer serializer = new XmlSerializer(typeof (ApplicationConfiguration));
+			config.Save("CreateConfigurationTest-output.xml");
 
-			using (TextWriter writer = new StreamWriter("CreateConfigurationTest-output.xml"))
-			{
-				serializer.Serialize(writer, config);
-			}
+			//NOTE: EXPORT XML SCHEMA
+			config.SaveSchema("CreateConfigurationTest-output.xsd");
 
-			ApplicationConfiguration resultConfig;
+			// Read and assert
 
-			using (TextReader sr = new StreamReader("CreateConfigurationTest-output.xml"))
-			{
-				resultConfig = (ApplicationConfiguration) serializer.Deserialize(sr);
-			}
+			ApplicationConfiguration resultConfig = ApplicationConfiguration.Load("CreateConfigurationTest-output.xml");
 
 			Assert.IsNotNull(resultConfig);
-			Assert.IsNotNull(resultConfig.Channels);
-			Assert.IsNotNull(resultConfig.Channels.FirstOrDefault().Source);
-			//Assert.IsNotNull(resultConfig.Channels.FirstOrDefault().Source.Filters.FirstOrDefault().Options.ToDictionary());
+			Assert.IsNotNull(resultConfig.Endpoints);
+			Assert.AreEqual(2, resultConfig.Endpoints.Count());
 
-			Assert.AreEqual("value1&", resultConfig.Channels.FirstOrDefault().Source.Filters.FirstOrDefault().Options.ToDictionary().First().Value);
+			Assert.IsNotNull(resultConfig.Channels);
+			Assert.AreEqual(1, resultConfig.Channels.Count());
+
+			Assert.IsNotNull(resultConfig.Channels.First().Destinations);
+			Assert.AreEqual(1, resultConfig.Channels.First().Destinations.Count());
+
+			Assert.IsNotNull(resultConfig.Channels.First().Destinations.First().Transformers);
+			Assert.AreEqual(1, resultConfig.Channels.First().Destinations.First().Transformers.Count());
+
+			Assert.IsNotNull(resultConfig.Channels.First().Destinations.First().Filters);
+			Assert.AreEqual(1, resultConfig.Channels.First().Destinations.First().Filters.Count());
+
+			Assert.IsNotNull(resultConfig.Channels.First().Source);
+
+			Assert.IsNotNull(resultConfig.Channels.First().Source.Filters);
+			Assert.AreEqual(1, resultConfig.Channels.First().Source.Filters.Count());
+
+			Assert.IsNotNull(resultConfig.Channels.First().Source.Transformers);
+			Assert.AreEqual(1, resultConfig.Channels.First().Source.Transformers.Count());
+
+			// Options
+			Assert.IsNotNull(resultConfig.Channels.First().Source.Filters.First().Options);
+			Dictionary<string, string> deserializedProperties = resultConfig.Channels.First().Source.Filters.First().Options.ToDictionary();
+			Assert.IsNotNull(deserializedProperties);
+			Assert.AreEqual(3, deserializedProperties.Count());
+			Assert.AreEqual("value1&", deserializedProperties["property1"]);
+		}
+
+		[TestMethod]
+		public void CreateApplicationFromApplicationConfigurationTest()
+		{
+			ApplicationConfiguration config = ApplicationConfiguration.Load("CreateApplicationFromApplicationConfigurationTest.xml");
+
+			Application application = config.CreateApplication();
+
+			Assert.IsNotNull(application);
+			Assert.AreEqual("MyApplication", application.Name);
+			Assert.AreEqual("A test application for TDD HIE", application.Description);
+
+			Assert.IsNotNull(application);
+			Assert.IsNotNull(application.Endpoints);
+			Assert.AreEqual(2, application.Endpoints.Count());
+			Assert.AreEqual(typeof (EndpointMock), application.Endpoints.First().GetType());
+			Assert.AreEqual(typeof (EndpointMock), application.Endpoints.Last().GetType());
+
+			Assert.IsNotNull(application.Channels);
+			Assert.AreEqual(1, application.Channels.Count());
+
+			Assert.IsNotNull(application.Channels.First().Destinations);
+			Assert.AreEqual(1, application.Channels.First().Destinations.Count());
+
+			Assert.IsNotNull(application.Channels.First().Destinations.First().Filters);
+			Assert.AreEqual(1, application.Channels.First().Destinations.First().Filters.Count());
+			Assert.AreEqual(typeof (DelegateFilter), application.Channels.First().Destinations.First().Filters.First().GetType());
+
+			Assert.IsNotNull(application.Channels.First().Destinations.First().Transformers);
+			Assert.AreEqual(1, application.Channels.First().Destinations.First().Transformers.Count());
+			Assert.AreEqual(typeof (DelegateTransformer), application.Channels.First().Destinations.First().Transformers.First().GetType());
+
+			Assert.IsNotNull(application.Channels.First().Source);
+
+			Assert.IsNotNull(application.Channels.First().Source.Filters);
+			Assert.AreEqual(1, application.Channels.First().Source.Filters.Count());
+			Assert.AreEqual(typeof (DelegateFilter), application.Channels.First().Source.Filters.First().GetType());
+
+			Assert.IsNotNull(application.Channels.First().Source.Transformers);
+			Assert.AreEqual(1, application.Channels.First().Source.Transformers.Count());
+			Assert.AreEqual(typeof (DelegateTransformer), application.Channels.First().Source.Transformers.First().GetType());
 		}
 	}
+
 
 	public class DestinationConfiguration
 	{
@@ -118,7 +178,7 @@ namespace Hie.Core.Configuration
 	public class FilterConfiguration
 	{
 		public string TypeInfo { get; set; }
-		public DictionaryProxy<string, string> Options { get; set; }
+		public DictionaryProxy<string> Options { get; set; }
 	}
 
 	public class TransformerConfiguration
@@ -143,22 +203,6 @@ namespace Hie.Core.Configuration
 		public string TypeInfo { get; set; }
 	}
 
-	public class ApplicationConfiguration
-	{
-		public string Name { get; set; }
-
-		public string Description { get; set; }
-		public List<EndpointConfiguration> Endpoints { get; private set; }
-		public List<ChannelConfiguration> Channels { get; private set; }
-
-
-		public ApplicationConfiguration()
-		{
-			Channels = new List<ChannelConfiguration>();
-			Endpoints = new List<EndpointConfiguration>();
-		}
-	}
-
 	public class ChannelConfiguration
 	{
 		public string Name { get; set; }
@@ -176,53 +220,38 @@ namespace Hie.Core.Configuration
 	/// <summary>
 	///     Proxy class to permit XML Serialization of generic dictionaries
 	/// </summary>
-	/// <typeparam name="K">The type of the key</typeparam>
+	/// <typeparam name="string">The type of the key</typeparam>
 	/// <typeparam name="V">The type of the value</typeparam>
-	public class DictionaryProxy<K, V> where V : class
+	public class DictionaryProxy<V> where V : class
 	{
-		#region Construction and Initialization
-
-		public DictionaryProxy(IDictionary<K, V> original)
+		public DictionaryProxy(IDictionary<string, V> original)
 		{
 			Original = original;
 		}
 
-		/// <summary>
-		///     Default constructor so deserialization works
-		/// </summary>
 		public DictionaryProxy()
 		{
 		}
 
-		/// <summary>
-		///     Use to set the dictionary if necessary, but don't serialize
-		/// </summary>
 		[XmlIgnore]
-		public IDictionary<K, V> Original { get; set; }
-
-		public void Add(K key, V value)
-		{
-			Original.Add(key, value);
-		}
-
-		[XmlIgnore]
-		public V this[K key]
+		public V this[string key]
 		{
 			get { return Original[key]; }
 			set { Original[key] = value; }
 		}
 
-		#endregion
+		[XmlIgnore]
+		public IDictionary<string, V> Original { get; set; }
 
-		#region The Proxy List
+		public void Add(string key, V value)
+		{
+			Original.Add(key, value);
+		}
 
-		/// <summary>
-		///     Holds the keys and values
-		/// </summary>
 		public class KeyAndValue
 		{
 			[XmlAttribute("name")]
-			public K Key { get; set; }
+			public string Key { get; set; }
 
 			[XmlIgnore]
 			public V Value { get; set; }
@@ -236,22 +265,13 @@ namespace Hie.Core.Configuration
 		}
 
 		// This field will store the deserialized list
-		[XmlIgnore] private Collection<KeyAndValue> _list;
+		[XmlIgnore] private List<KeyAndValue> _list = new List<KeyAndValue>();
 
-		/// <remarks>
-		///     XmlElementAttribute is used to prevent extra nesting level. It's
-		///     not necessary.
-		/// </remarks>
 		[XmlElement("Property")]
-		public Collection<KeyAndValue> KeysAndValues
+		public List<KeyAndValue> KeysAndValues
 		{
 			get
 			{
-				if (_list == null)
-				{
-					_list = new Collection<KeyAndValue>();
-				}
-
 				// On deserialization, Original will be null, just return what we have
 				if (Original == null)
 				{
@@ -269,13 +289,11 @@ namespace Hie.Core.Configuration
 			}
 		}
 
-		#endregion
-
 		/// <summary>
 		///     Convenience method to return a dictionary from this proxy instance
 		/// </summary>
 		/// <returns></returns>
-		public Dictionary<K, V> ToDictionary()
+		public Dictionary<string, V> ToDictionary()
 		{
 			return KeysAndValues.ToDictionary(key => key.Key, value => value.Value);
 		}

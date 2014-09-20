@@ -6,6 +6,11 @@ namespace Hie.Core.Model
 
 		private FilterProcessor _processor;
 
+		public DelegateFilter()
+		{
+			
+		}
+
 		public DelegateFilter(FilterProcessor processor)
 		{
 			_processor = processor;
