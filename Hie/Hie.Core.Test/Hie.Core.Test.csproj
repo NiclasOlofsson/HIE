@@ -66,6 +66,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\ConfigurationTest.cs" />
     <Compile Include="Endpoints\FileReceiverEndpointTest.cs" />
     <Compile Include="Endpoints\TcpReceiveEndpointTest.cs" />
     <Compile Include="Endpoints\TcpSendEndpointTest.cs" />
@@ -82,6 +83,9 @@
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="application-test.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Hl7DisassemblerTest-hl7-2.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
