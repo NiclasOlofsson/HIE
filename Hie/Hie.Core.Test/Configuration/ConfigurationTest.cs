@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Xml;
-using System.Xml.Serialization;
 using Hie.Core.Mocks;
 using Hie.Core.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,7 +46,7 @@ namespace Hie.Core.Configuration
 					FilterConfiguration filter = new FilterConfiguration();
 					var typeInfo = typeof (DelegateFilter).GetTypeInfo();
 					filter.TypeInfo = typeInfo.AssemblyQualifiedName;
-					DictionaryProxy<string> options = new DictionaryProxy<string>(new Dictionary<string, string>());
+					DictionaryProxy options = new DictionaryProxy(new Dictionary<string, string>());
 					options.Add("property1", "value1&");
 					options.Add("property2", "value2\n\nvalue2");
 					options.Add("property3", "value3");
@@ -159,143 +157,6 @@ namespace Hie.Core.Configuration
 			Assert.IsNotNull(application.Channels.First().Source.Transformers);
 			Assert.AreEqual(1, application.Channels.First().Source.Transformers.Count());
 			Assert.AreEqual(typeof (DelegateTransformer), application.Channels.First().Source.Transformers.First().GetType());
-		}
-	}
-
-
-	public class DestinationConfiguration
-	{
-		public List<FilterConfiguration> Filters { get; private set; }
-		public List<TransformerConfiguration> Transformers { get; private set; }
-
-		public DestinationConfiguration()
-		{
-			Filters = new List<FilterConfiguration>();
-			Transformers = new List<TransformerConfiguration>();
-		}
-	}
-
-	public class FilterConfiguration
-	{
-		public string TypeInfo { get; set; }
-		public DictionaryProxy<string> Options { get; set; }
-	}
-
-	public class TransformerConfiguration
-	{
-		public string TypeInfo { get; set; }
-	}
-
-	public class SourceConfiguration
-	{
-		public List<FilterConfiguration> Filters { get; private set; }
-		public List<TransformerConfiguration> Transformers { get; private set; }
-
-		public SourceConfiguration()
-		{
-			Filters = new List<FilterConfiguration>();
-			Transformers = new List<TransformerConfiguration>();
-		}
-	}
-
-	public class EndpointConfiguration
-	{
-		public string TypeInfo { get; set; }
-	}
-
-	public class ChannelConfiguration
-	{
-		public string Name { get; set; }
-
-		public string Description { get; set; }
-		public SourceConfiguration Source { get; set; }
-		public List<DestinationConfiguration> Destinations { get; set; }
-
-		public ChannelConfiguration()
-		{
-			Destinations = new List<DestinationConfiguration>();
-		}
-	}
-
-	/// <summary>
-	///     Proxy class to permit XML Serialization of generic dictionaries
-	/// </summary>
-	/// <typeparam name="string">The type of the key</typeparam>
-	/// <typeparam name="V">The type of the value</typeparam>
-	public class DictionaryProxy<V> where V : class
-	{
-		public DictionaryProxy(IDictionary<string, V> original)
-		{
-			Original = original;
-		}
-
-		public DictionaryProxy()
-		{
-		}
-
-		[XmlIgnore]
-		public V this[string key]
-		{
-			get { return Original[key]; }
-			set { Original[key] = value; }
-		}
-
-		[XmlIgnore]
-		public IDictionary<string, V> Original { get; set; }
-
-		public void Add(string key, V value)
-		{
-			Original.Add(key, value);
-		}
-
-		public class KeyAndValue
-		{
-			[XmlAttribute("name")]
-			public string Key { get; set; }
-
-			[XmlIgnore]
-			public V Value { get; set; }
-
-			[XmlElement("Value")]
-			public XmlCDataSection CdataValue
-			{
-				get { return new XmlDocument().CreateCDataSection(Value.ToString()); }
-				set { Value = value.Value as V; }
-			}
-		}
-
-		// This field will store the deserialized list
-		[XmlIgnore] private List<KeyAndValue> _list = new List<KeyAndValue>();
-
-		[XmlElement("Property")]
-		public List<KeyAndValue> KeysAndValues
-		{
-			get
-			{
-				// On deserialization, Original will be null, just return what we have
-				if (Original == null)
-				{
-					return _list;
-				}
-
-				// If Original was present, add each of its elements to the list
-				_list.Clear();
-				foreach (var pair in Original)
-				{
-					_list.Add(new KeyAndValue { Key = pair.Key, Value = pair.Value });
-				}
-
-				return _list;
-			}
-		}
-
-		/// <summary>
-		///     Convenience method to return a dictionary from this proxy instance
-		/// </summary>
-		/// <returns></returns>
-		public Dictionary<string, V> ToDictionary()
-		{
-			return KeysAndValues.ToDictionary(key => key.Key, value => value.Value);
 		}
 	}
 }

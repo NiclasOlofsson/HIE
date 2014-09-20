@@ -49,6 +49,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApplicationHost.cs" />
+    <Compile Include="Configuration\ApplicationConfiguration.cs" />
+    <Compile Include="Configuration\ChannelConfiguration.cs" />
+    <Compile Include="Configuration\DictionaryProxy.cs" />
+    <Compile Include="Configuration\DestinationConfiguration.cs" />
+    <Compile Include="Configuration\EndpointConfiguration.cs" />
+    <Compile Include="Configuration\FilterConfiguration.cs" />
+    <Compile Include="Configuration\SourceConfiguration.cs" />
+    <Compile Include="Configuration\TransformerConfiguration.cs" />
     <Compile Include="Endpoints\EndpointBase.cs" />
     <Compile Include="Endpoints\FileReaderEndpoint.cs" />
     <Compile Include="Endpoints\FileWriterEndpoint.cs" />
