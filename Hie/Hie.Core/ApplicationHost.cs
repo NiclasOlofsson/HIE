@@ -1,45 +1,57 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Hie.Core.Model;
 
 namespace Hie.Core
 {
 	public interface IApplicationHost
 	{
-		void Deploy(Application application);
+		void Deploy(Application app);
 		void StartProcessing();
 		void StopProcessing();
+
 		void PublishMessage(object source, Message message);
+
+		void AddPipelineComponent(IEndpoint endpoint, IPipelineComponent pipelineComponent);
+		void PushPipelineData(IEndpoint endpoint, byte[] data);
+		void PushPipelineData(IEndpoint endpoint, Message message);
+
 		void ProcessInPipeline(IEndpoint source, byte[] data);
 		void ProcessInPipeline(IEndpoint source, Message message);
 	}
 
 	public class ApplicationHost : IApplicationHost
 	{
-		public IPipelineManager PipelineManager { get; set; }
+		private Dictionary<IEndpoint, Queue<IPipelineComponent>> _pipelines = new Dictionary<IEndpoint, Queue<IPipelineComponent>>();
 
 		public IList<Application> Applications { get; private set; }
 
-		public ApplicationHost(IPipelineManager pipelineManager = null)
+		public ApplicationHost()
 		{
 			Applications = new List<Application>();
-			if (pipelineManager == null)
-			{
-				PipelineManager = new PipelineManager(this);
-			}
-			else
-			{
-				PipelineManager = pipelineManager;
-			}
 		}
 
-		public void Deploy(Application application)
+		public void Deploy(Application app)
 		{
 			// Setup application
-			application.HostService = this;
+			app.HostService = this;
+
+			foreach (Port port in app.Ports)
+			{
+				foreach (var encoder in port.Encoders)
+				{
+					AddPipelineComponent(port.Endpoint, encoder);
+				}
+
+				foreach (var assembler in port.Assembers)
+				{
+					AddPipelineComponent(port.Endpoint, assembler);
+				}
+			}
 
 			// Setup channels
-			foreach (var channel in application.Channels)
+			foreach (var channel in app.Channels)
 			{
 				channel.HostService = this;
 				foreach (var destination in channel.Destinations)
@@ -50,21 +62,21 @@ namespace Hie.Core
 			}
 
 			// Setup endpoints
-			foreach (var endpoint in application.Endpoints)
+			foreach (var port in app.Ports)
 			{
-				endpoint.Initialize(this, null);
+				port.Endpoint.Initialize(this, null);
 			}
 
-			Applications.Add(application);
+			Applications.Add(app);
 		}
 
 		public void StartProcessing()
 		{
 			foreach (var application in Applications)
 			{
-				foreach (var endpoint in application.Endpoints)
+				foreach (var port in application.Ports)
 				{
-					endpoint.StartProcessing();
+					port.Endpoint.StartProcessing();
 				}
 			}
 		}
@@ -73,14 +85,14 @@ namespace Hie.Core
 		{
 			foreach (var application in Applications)
 			{
-				foreach (var endpoint in application.Endpoints)
+				foreach (var port in application.Ports)
 				{
-					endpoint.StopProcessing();
+					port.Endpoint.StopProcessing();
 				}
 			}
 		}
 
-		public void PublishMessage(object source, Message message)
+		public virtual void PublishMessage(object source, Message message)
 		{
 			// Store message in queue (message box). Not yet implemented, but is what publish/subscribe will do
 
@@ -114,10 +126,9 @@ namespace Hie.Core
 			{
 				foreach (var application in Applications)
 				{
-					foreach (var endpoint in application.Endpoints)
+					foreach (var port in application.Ports)
 					{
-						
-						ProcessInPipeline(endpoint, message);
+						ProcessInPipeline(port.Endpoint, message);
 					}
 				}
 			}
@@ -129,12 +140,101 @@ namespace Hie.Core
 
 		public void ProcessInPipeline(IEndpoint source, byte[] data)
 		{
-			PipelineManager.PushPipelineData(source, data);
+			PushPipelineData(source, data);
 		}
 
 		public void ProcessInPipeline(IEndpoint source, Message message)
 		{
-			PipelineManager.PushPipelineData(source, message);
+			PushPipelineData(source, message);
+		}
+
+
+		public void AddPipelineComponent(IEndpoint endpoint, IPipelineComponent pipelineComponent)
+		{
+			Queue<IPipelineComponent> pipeline;
+
+			if (_pipelines.ContainsKey(endpoint))
+			{
+				pipeline = _pipelines[endpoint];
+			}
+			else
+			{
+				pipeline = new Queue<IPipelineComponent>();
+				_pipelines.Add(endpoint, pipeline);
+			}
+
+			pipeline.Enqueue(pipelineComponent);
+		}
+
+		public void PushPipelineData(IEndpoint endpoint, byte[] data)
+		{
+			// Find pipeline for endpoint and process..
+			Queue<IPipelineComponent> pipeline;
+			if (!_pipelines.TryGetValue(endpoint, out pipeline))
+			{
+				// Temporary. Remove during refactoring of endpoints.
+				Message message = new Message("text/plain");
+				message.SetValueFrom(data);
+				PublishMessage(endpoint, message);
+			}
+			else
+			{
+				byte[] decoded = null;
+				foreach (IDecoder component in pipeline.OfType<IDecoder>())
+				{
+					decoded = component.Decode(data);
+					if (decoded != null) break;
+				}
+
+				if (decoded == null) decoded = data;
+
+				foreach (IDisassembler component in pipeline.OfType<IDisassembler>())
+				{
+					component.Disassemble(decoded);
+
+					Message message;
+					do
+					{
+						message = component.NextMessage();
+						if (message != null) PublishMessage(endpoint, message);
+					} while (message != null);
+				}
+			}
+		}
+
+		public void PushPipelineData(IEndpoint endpoint, Message message)
+		{
+			Queue<IPipelineComponent> pipeline;
+			if (!_pipelines.TryGetValue(endpoint, out pipeline))
+			{
+				//TODO: Temporary for testing
+				endpoint.ProcessMessage(endpoint, message.GetBytes());
+			}
+			else
+			{
+				byte[] data = null;
+				foreach (IAssembler component in pipeline.OfType<IAssembler>())
+				{
+					component.AddMessage(message);
+					data = component.Assemble();
+
+					// Decide what to do if data is returned.
+					// Right now, we break out and go to encoders
+					if (data != null) break;
+				}
+
+				if (data == null) data = message.GetBytes();
+
+				foreach (IEncoder component in pipeline.OfType<IEncoder>())
+				{
+					data = component.Encode(data);
+				}
+
+				if (data != null)
+				{
+					endpoint.ProcessMessage(endpoint, data);
+				}
+			}
 		}
 	}
 }

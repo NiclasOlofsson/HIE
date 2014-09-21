@@ -39,7 +39,8 @@ namespace Hie.Core.Model
 			XDocument document = XDocument.Load("Hl7DisassemblerTest-hl7.xml");
 
 			var element = document.Descendants("MSH.19.1").FirstOrDefault();
-			Assert.AreEqual(" ", element.Value);
+			Assert.IsNotNull(element);
+			Assert.AreEqual(" ", element.Value, "We need these empty spaces in the file to make sure the XML framework doesn't throw them away on the way");
 
 			String segmentSeparator = "\r";
 			String fieldSeparator = "|";

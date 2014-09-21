@@ -17,11 +17,11 @@ namespace Hie.Core.Endpoints
 			// Add endpoints
 			string filePath = "test-file.txt";
 			FileReaderEndpoint fileReaderEndpoint = new FileReaderEndpoint(filePath, 100, Encoding.Default);
-			application.Endpoints.Add(fileReaderEndpoint);
+			application.Ports.Add(new Port { Endpoint = fileReaderEndpoint });
 
 			string fileOutPath = "test-file-out.txt";
 			FileWriterEndpoint fileWriterEndpoint = new FileWriterEndpoint(fileOutPath, true, Encoding.Default, true);
-			application.Endpoints.Add(fileWriterEndpoint);
+			application.Ports.Add(new Port { Endpoint = fileWriterEndpoint });
 
 			// Add a channel
 			Channel channel = new Channel();

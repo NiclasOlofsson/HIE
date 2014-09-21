@@ -1,6 +1,6 @@
 ﻿namespace Hie.Core.Configuration
 {
-	public class EndpointConfiguration
+	public class PipelineComponentConfiguration
 	{
 		public string TypeInfo { get; set; }
 	}

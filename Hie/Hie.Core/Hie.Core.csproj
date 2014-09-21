@@ -55,6 +55,8 @@
     <Compile Include="Configuration\DestinationConfiguration.cs" />
     <Compile Include="Configuration\EndpointConfiguration.cs" />
     <Compile Include="Configuration\FilterConfiguration.cs" />
+    <Compile Include="Configuration\PipelineComponentConfiguration.cs" />
+    <Compile Include="Configuration\PortConfiguration.cs" />
     <Compile Include="Configuration\SourceConfiguration.cs" />
     <Compile Include="Configuration\TransformerConfiguration.cs" />
     <Compile Include="Endpoints\EndpointBase.cs" />
@@ -78,10 +80,9 @@
     <Compile Include="Model\IFilter.cs" />
     <Compile Include="Model\IOptions.cs" />
     <Compile Include="Model\IPipelineComponent.cs" />
-    <Compile Include="Model\IPipelineManager.cs" />
     <Compile Include="Model\ITransformer.cs" />
     <Compile Include="Model\Message.cs" />
-    <Compile Include="Model\PipelineManager.cs" />
+    <Compile Include="Model\Port.cs" />
     <Compile Include="Model\Source.cs" />
     <Compile Include="Model\XmlDisassembler.cs" />
     <Compile Include="Model\XmlToHl7Converter.cs" />

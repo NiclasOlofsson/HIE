@@ -15,12 +15,28 @@ namespace Hie.Core
 			// A new application
 			Application application = new Application();
 
-			// Add endpoints
+			// Ports
+			Port receivePort = new Port();
 			IEndpoint endpoint = new EndpointMock();
-			application.Endpoints.Add(endpoint);
+			receivePort.Endpoint = endpoint;
+			{
+				IEncoder encoder = new PipelineComponentMock();
+				receivePort.Encoders.Add(encoder);
+				IDisassembler disassembler = new PipelineComponentMock();
+				receivePort.Assembers.Add(disassembler);
+			}
+			application.Ports.Add(receivePort);
 
+			Port sendPort = new Port();
 			IEndpoint sendEndpoint = new EndpointMock();
-			application.Endpoints.Add(sendEndpoint);
+			sendPort.Endpoint = sendEndpoint;
+			{
+				IEncoder encoder = new PipelineComponentMock();
+				sendPort.Encoders.Add(encoder);
+				IDisassembler disassembler = new PipelineComponentMock();
+				sendPort.Assembers.Add(disassembler);
+			}
+			application.Ports.Add(sendPort);
 
 			// Add a channel
 			Channel channel = new Channel();

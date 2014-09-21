@@ -2,14 +2,30 @@
 <ApplicationConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<Name>MyApplication</Name>
 	<Description>A test application for TDD HIE</Description>
-	<Endpoints>
-		<EndpointConfiguration>
-			<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
-		</EndpointConfiguration>
-		<EndpointConfiguration>
-			<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
-		</EndpointConfiguration>
-	</Endpoints>
+	<Ports>
+		<PortConfiguration>
+			<Endpoint>
+				<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+			</Endpoint>
+			<Encoders>
+				<PipelineComponentConfiguration>
+					<TypeInfo>Hie.Core.Mocks.PipelineComponentMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+				</PipelineComponentConfiguration>
+			</Encoders>
+			<Assemblers>
+				<PipelineComponentConfiguration>
+					<TypeInfo>Hie.Core.Mocks.PipelineComponentMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+				</PipelineComponentConfiguration>
+			</Assemblers>
+		</PortConfiguration>
+		<PortConfiguration>
+			<Endpoint>
+				<TypeInfo>Hie.Core.Mocks.EndpointMock, Hie.Core.Test, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+			</Endpoint>
+			<Encoders />
+			<Assemblers />
+		</PortConfiguration>
+	</Ports>
 	<Channels>
 		<ChannelConfiguration>
 			<Name>Test channel</Name>
@@ -37,7 +53,17 @@ value2]]>
 				</Filters>
 				<Transformers>
 					<TransformerConfiguration>
-						<TypeInfo>Hie.Core.Model.DelegateTransformer, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+						<TypeInfo>Hie.Core.Modules.JavaScript.JavaScriptTransformer, Hie.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null</TypeInfo>
+						<Options>
+							<Property name="Script">
+								<Value>
+									<![CDATA[
+if(msg['MSH']['MSH.8'] != null) delete msg['MSH']['MSH.8'];
+msg['MSH']['MSH.2'] = 'TEST';
+								]]>
+								</Value>
+							</Property>
+						</Options>
 					</TransformerConfiguration>
 				</Transformers>
 			</Source>

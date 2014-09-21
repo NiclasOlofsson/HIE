@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Xml.Schema;
 using System.Xml.Serialization;
 using Hie.Core.Model;
@@ -12,28 +13,40 @@ namespace Hie.Core.Configuration
 		public string Name { get; set; }
 
 		public string Description { get; set; }
-		public List<EndpointConfiguration> Endpoints { get; private set; }
+		public List<PortConfiguration> Ports { get; private set; }
 		public List<ChannelConfiguration> Channels { get; private set; }
 
 
 		public ApplicationConfiguration()
 		{
 			Channels = new List<ChannelConfiguration>();
-			Endpoints = new List<EndpointConfiguration>();
+			Ports = new List<PortConfiguration>();
 		}
 
 		public Application CreateApplication()
 		{
-			Application application = new Application();
-			application.Name = Name;
-			application.Description = Description;
+			Application application = new Application { Name = Name, Description = Description };
 
-			foreach (var endpointConfig in Endpoints)
+			foreach (var portConfig in Ports)
 			{
-				IEndpoint endpoint = CreateInstanace(endpointConfig.TypeInfo) as IEndpoint;
-				application.Endpoints.Add(endpoint);
-			}
+				Port port = new Port();
+				IEndpoint endpoint = CreateInstanace(portConfig.Endpoint.TypeInfo) as IEndpoint;
+				port.Endpoint = endpoint;
 
+				foreach (var encoderConfig in portConfig.Encoders)
+				{
+					var encoder = CreateInstanace(encoderConfig.TypeInfo) as IPipelineComponent;
+					port.Encoders.Add(encoder);
+				}
+
+				foreach (var assemblerConfig in portConfig.Assemblers)
+				{
+					var encoder = CreateInstanace(assemblerConfig.TypeInfo) as IPipelineComponent;
+					port.Assembers.Add(encoder);
+				}
+
+				application.Ports.Add(port);
+			}
 
 			foreach (var channelConfig in Channels)
 			{
@@ -60,19 +73,33 @@ namespace Hie.Core.Configuration
 
 		private static void LoadFilters(IEnumerable<FilterConfiguration> filterConfigurations, List<IFilter> filters)
 		{
-			foreach (var filterConfig in filterConfigurations)
+			foreach (var filterConfiguration in filterConfigurations)
 			{
-				IFilter filter = CreateInstanace(filterConfig.TypeInfo) as IFilter;
+				IFilter filter = CreateInstanace(filterConfiguration.TypeInfo) as IFilter;
+				SetProperties(filter, filterConfiguration.Options);
 				filters.Add(filter);
 			}
 		}
 
 		private static void LoadTransformers(IEnumerable<TransformerConfiguration> transformerConfigurations, List<ITransformer> transformers)
 		{
-			foreach (var filterConfig in transformerConfigurations)
+			foreach (var transformerConfiguration in transformerConfigurations)
 			{
-				ITransformer transformer = CreateInstanace(filterConfig.TypeInfo) as ITransformer;
+				ITransformer transformer = CreateInstanace(transformerConfiguration.TypeInfo) as ITransformer;
+				SetProperties(transformer, transformerConfiguration.Options);
 				transformers.Add(transformer);
+			}
+		}
+
+		private static void SetProperties(object target, DictionaryProxy options)
+		{
+			if (options == null) return;
+
+			foreach (KeyValuePair<string, string> item in options.ToDictionary())
+			{
+				PropertyInfo property = target.GetType().GetProperty(item.Key, typeof (string));
+				if (property != null) property.SetValue(target, item.Value);
+				//else throw new Exception("Type: " + target.GetType().Name + " Property: " + item.Key);
 			}
 		}
 

@@ -1,5 +1,4 @@
-﻿using Hie.Core.Mocks;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
 namespace Hie.Core.Model
@@ -13,59 +12,12 @@ namespace Hie.Core.Model
 	public class PipelineTest
 	{
 		[TestMethod]
-		public void CreateGeneralComponentTest()
+		public void PipelineProcessingTest()
 		{
-			IPipelineComponent component = new PipelineComponentMock();
+			var appHostMock = new Mock<ApplicationHost>();
+			appHostMock.CallBase = true;
+			var appHost = appHostMock.Object;
 
-			IOptions options = new Mock<IOptions>().Object;
-			component.Initialize(options);
-		}
-
-		[TestMethod]
-		public void CreateDecoderTest()
-		{
-			IDecoder decoder = new PipelineComponentMock();
-
-			IOptions options = new Mock<IOptions>().Object;
-			decoder.Initialize(options);
-
-			byte[] data = new byte[0];
-			data = decoder.Decode(data);
-		}
-
-		[TestMethod]
-		public void CreateDisassemblerTest()
-		{
-			IDisassembler dissassembler = new PipelineComponentMock();
-
-			IOptions options = new Mock<IOptions>().Object;
-			dissassembler.Initialize(options);
-
-			byte[] data = new byte[0];
-			dissassembler.Disassemble(data);
-			Message message = dissassembler.NextMessage();
-		}
-
-
-		[TestMethod]
-		public void CreateEncoderTest()
-		{
-			IEncoder encoder = new PipelineComponentMock();
-
-			IOptions options = new Mock<IOptions>().Object;
-			encoder.Initialize(options);
-
-			byte[] data = new byte[0];
-			data = encoder.Encode(data);
-		}
-
-		[TestMethod]
-		public void CreatePipelineManagerTest()
-		{
-			var applicationHost = new Mock<IApplicationHost>();
-			IPipelineManager manager = new PipelineManager(applicationHost.Object);
-
-			// Register a pipeline component with an endpoint in the manager
 			var receiveEndpoint = new Mock<IEndpoint>();
 			var sendEndpoint = new Mock<IEndpoint>();
 			var decoderMock = new Mock<IPipelineComponent>().As<IDecoder>();
@@ -73,11 +25,17 @@ namespace Hie.Core.Model
 			var disassemblerMock = new Mock<IPipelineComponent>().As<IDisassembler>();
 			var assemblerMock = new Mock<IPipelineComponent>().As<IAssembler>();
 
-			manager.AddPipelineComponent(receiveEndpoint.Object, decoderMock.Object);
-			manager.AddPipelineComponent(receiveEndpoint.Object, disassemblerMock.Object);
-			manager.AddPipelineComponent(sendEndpoint.Object, encoderMock.Object);
-			manager.AddPipelineComponent(sendEndpoint.Object, assemblerMock.Object);
+			appHostMock.Setup(host => host.PublishMessage(It.IsNotNull<object>(), It.IsNotNull<Message>()));
 
+			// Receive decoder and disassembler
+			appHost.AddPipelineComponent(receiveEndpoint.Object, decoderMock.Object);
+			appHost.AddPipelineComponent(receiveEndpoint.Object, disassemblerMock.Object);
+
+			// Send assembler and encoder
+			appHost.AddPipelineComponent(sendEndpoint.Object, assemblerMock.Object);
+			appHost.AddPipelineComponent(sendEndpoint.Object, encoderMock.Object);
+
+			// Setup pipeline to produce data
 			decoderMock.SetupSequence(decoder => decoder.Decode(It.IsAny<byte[]>()))
 				.Returns(new byte[] { 0x00 })
 				.Returns(new byte[] { 0x01 })
@@ -85,7 +43,7 @@ namespace Hie.Core.Model
 				.Returns(new byte[] { 0x03 })
 				;
 
-			assemblerMock.SetupSequence(encoder => encoder.Assemble())
+			assemblerMock.SetupSequence(assembler => assembler.Assemble())
 				.Returns(new byte[] { 0x00 })
 				.Returns(new byte[] { 0x01 })
 				.Returns(new byte[] { 0x02 })
@@ -102,10 +60,10 @@ namespace Hie.Core.Model
 			// Receive pipeline tests
 
 			byte[] data = new byte[0];
-			manager.PushPipelineData(receiveEndpoint.Object, data);
-			manager.PushPipelineData(receiveEndpoint.Object, data);
-			manager.PushPipelineData(receiveEndpoint.Object, data);
-			manager.PushPipelineData(receiveEndpoint.Object, data);
+			appHost.PushPipelineData(receiveEndpoint.Object, data);
+			appHost.PushPipelineData(receiveEndpoint.Object, data);
+			appHost.PushPipelineData(receiveEndpoint.Object, data);
+			appHost.PushPipelineData(receiveEndpoint.Object, data);
 
 			decoderMock.Verify(decoder => decoder.Decode(data), Times.Exactly(4));
 
@@ -115,19 +73,19 @@ namespace Hie.Core.Model
 			disassemblerMock.Verify(disassembler => disassembler.Disassemble(It.Is<byte[]>(bytes => bytes[0] == 0x02)), Times.Once);
 			disassemblerMock.Verify(disassembler => disassembler.Disassemble(It.Is<byte[]>(bytes => bytes[0] == 0x03)), Times.Once);
 
-			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.IsAny<Message>()), Times.Exactly(4));
-			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("1"))), Times.Once);
-			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("2"))), Times.Once);
-			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("3"))), Times.Once);
-			applicationHost.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("4"))), Times.Once);
+			appHostMock.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.IsAny<Message>()), Times.Exactly(4));
+			appHostMock.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("1"))), Times.Once);
+			appHostMock.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("2"))), Times.Once);
+			appHostMock.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("3"))), Times.Once);
+			appHostMock.Verify(host => host.PublishMessage(It.IsAny<IEndpoint>(), It.Is<Message>(msg => msg.GetString(null).Equals("4"))), Times.Once);
 
 			// Send pipeline tests
 
 			Message message = new Message("nothing");
-			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
-			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
-			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
-			manager.PushPipelineData(sendEndpoint.Object, message.Clone());
+			appHost.PushPipelineData(sendEndpoint.Object, message.Clone());
+			appHost.PushPipelineData(sendEndpoint.Object, message.Clone());
+			appHost.PushPipelineData(sendEndpoint.Object, message.Clone());
+			appHost.PushPipelineData(sendEndpoint.Object, message.Clone());
 
 			assemblerMock.Verify(assembler => assembler.AddMessage(It.IsNotNull<Message>()), Times.Exactly(4));
 
